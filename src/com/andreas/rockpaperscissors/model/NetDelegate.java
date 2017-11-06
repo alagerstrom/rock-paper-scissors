@@ -12,9 +12,7 @@ import java.util.List;
 
 public class NetDelegate implements NetHandler.Delegate<Message> {
 
-    private List<ChatObserver> chatObservers = new ArrayList<>();
-    private List<PlayerInfoObserver> playerInfoObservers = new ArrayList<>();
-    private ArrayList<GamePlayObserver> gamePlayObservers = new ArrayList<>();
+    private List<NetObserver> netObservers = new ArrayList<>();
 
     private NetHandler netHandler = NetHandler.getInstance();
 
@@ -36,45 +34,37 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
                 break;
             case PLAY:
                 Logger.log("Received: " + message.getSenderName() + " plays " + message.getPlayCommand());
-                notifyGamePlayObservers(message.getSenderName(), message.getPlayCommand());
+                notifyPlayerPlaysCommand(message.getSenderName(), message.getPlayCommand());
                 break;
         }
     }
 
     @Override
     public void peerNotResponding(String uniqueName) {
-        for (PlayerInfoObserver playerInfoObserver : playerInfoObservers)
-            playerInfoObserver.playerNotResponding(uniqueName);
+        for (NetObserver netObserver : netObservers)
+            netObserver.playerNotResponding(uniqueName);
 
     }
 
     private void notifyPlayerObservers(String playerName) {
-        for (PlayerInfoObserver playerInfoObserver : playerInfoObservers) {
-            playerInfoObserver.playerInfo(playerName);
+        for (NetObserver netObserver : netObservers) {
+            netObserver.playerInfo(playerName);
         }
     }
 
     private void notifyChatObservers(String messageContent) {
-        for (ChatObserver chatObserver : chatObservers)
-            chatObserver.newMessage(messageContent);
-    }
-
-    public void addChatObserver(ChatObserver chatObserver) {
-        this.chatObservers.add(chatObserver);
+        for (NetObserver netObserver : netObservers)
+            netObserver.chatMessage(messageContent);
     }
 
 
-    public void addPlayerInfoObserver(PlayerInfoObserver playerInfoObserver) {
-        this.playerInfoObservers.add(playerInfoObserver);
+    public void addNetObserver(NetObserver netObserver) {
+        this.netObservers.add(netObserver);
     }
 
-    public void addGamePlayObserver(GamePlayObserver gamePlayObserver) {
-        gamePlayObservers.add(gamePlayObserver);
-    }
-
-    private void notifyGamePlayObservers(String playerName, PlayCommand playCommand) {
-        for (GamePlayObserver gamePlayObserver : gamePlayObservers)
-            gamePlayObserver.playerPlaysCommand(playerName, playCommand);
+    private void notifyPlayerPlaysCommand(String playerName, PlayCommand playCommand) {
+        for (NetObserver netObserver : netObservers)
+            netObserver.playerPlaysCommand(playerName, playCommand);
     }
 
     public void connectTo(String host, int port) throws IOException {

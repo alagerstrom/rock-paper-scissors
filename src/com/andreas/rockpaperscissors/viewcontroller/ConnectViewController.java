@@ -54,7 +54,7 @@ public class ConnectViewController implements ViewController<ConnectViewControll
                 try {
                     delegate.launchGame(remoteHostString, remotePort, actionEvent);
                 }catch (IOException e){
-                    errorText.setText("Failed to connectButtonClicked.");
+                    errorText.setText("Failed to connect.");
                 }
             }else {
                 Logger.log("Delegate was null");

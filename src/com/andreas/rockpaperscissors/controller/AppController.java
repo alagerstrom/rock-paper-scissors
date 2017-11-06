@@ -27,8 +27,7 @@ public class AppController {
         Logger.log("AppController starting new game");
         netDelegate.setPlayerName(playerName);
         game = new Game(playerName);
-        addPlayerInfoObserver(game);
-        netDelegate.addGamePlayObserver(game);
+        netDelegate.addNetObserver(game);
         netDelegate.start();
     }
 
@@ -37,10 +36,6 @@ public class AppController {
         Logger.log("I should connectTo " + host + ", " + port);
         netDelegate.connectTo(host, port);
         sendPlayerInfo();
-    }
-
-    public void addPlayerInfoObserver(PlayerInfoObserver playerInfoObserver) {
-        netDelegate.addPlayerInfoObserver(playerInfoObserver);
     }
 
     public void getLocalHost(Consumer consumer) {
@@ -71,10 +66,6 @@ public class AppController {
         netDelegate.createServerSocket(port);
     }
 
-    public void addChatObserver(ChatObserver chatObserver) {
-        netDelegate.addChatObserver(chatObserver);
-    }
-
     public void sendPlayerInfo() {
         String playerName = game.getPlayerName();
         Message message = new Message(MessageType.PLAYER_INFO).setContent(playerName);
@@ -90,12 +81,6 @@ public class AppController {
     private void sendMessageOnNewThread(Message message) {
         netDelegate.sendMessageOnNewThread(message);
     }
-
-    public void addPlayersObserver(PlayersObserver playersObserver) {
-        game.addPlayersObserver(playersObserver);
-
-    }
-
 
     private void sendPlay(PlayCommand playCommand){
         Message message = new Message(MessageType.PLAY)
@@ -115,8 +100,8 @@ public class AppController {
         sendPlay(PlayCommand.SCISSORS);
     }
 
-    public void addRoundObserver(RoundObserver roundObserver) {
-        game.addRoundObserver(roundObserver);
+    public void addGameObserver(GameObserver gameObserver) {
+        game.addGameObserver(gameObserver);
     }
 
     public String getPlayerName(){

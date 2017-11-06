@@ -4,13 +4,13 @@ import com.andreas.rockpaperscissors.util.Logger;
 
 import java.util.*;
 
-public class Round {
+public class GameRound {
 
     private List<String> players = new ArrayList<>();
     private Map<String, PlayCommand> playCommandMap = new HashMap<>();
     private Game game;
 
-    public Round(List<Player> playerList, Game game) {
+    public GameRound(List<Player> playerList, Game game) {
         for (Player player : playerList)
             players.add(player.getName());
         this.game = game;
@@ -20,18 +20,18 @@ public class Round {
     public void playerPlaysCommand(String playerName, PlayCommand playCommand) {
         playCommandMap.put(playerName, playCommand);
         Logger.log("Checking if round is complete...");
-        if (checkIfRoundIsComplete()){
-            game.roundCompleted(this);
-            Logger.log("Round is completed");
-        }else {
-            Logger.log("Round is not completed");
-        }
+        tellGameIfRoundCompleted();
     }
 
-    private boolean checkIfRoundIsComplete(){
+    private void tellGameIfRoundCompleted() {
+        if (isRoundComplete())
+            game.roundCompleted(this);
+    }
+
+    private boolean isRoundComplete() {
         boolean result = true;
-        for (String playerName : players){
-            if (!playCommandMap.containsKey(playerName)){
+        for (String playerName : players) {
+            if (!playCommandMap.containsKey(playerName)) {
                 result = false;
                 break;
             }
@@ -39,7 +39,12 @@ public class Round {
         return result;
     }
 
-    public PlayCommand getPlayCommand(String playerName){
+    public void removePlayer(String player) {
+        players.remove(player);
+        tellGameIfRoundCompleted();
+    }
+
+    public PlayCommand getPlayCommand(String playerName) {
         return playCommandMap.get(playerName);
     }
 
@@ -58,15 +63,28 @@ public class Round {
         return count(commands.get(0)) == commands.size();
     }
 
-    public int count(PlayCommand playCommand){
+    public int count(PlayCommand playCommand) {
         List<PlayCommand> commands = new ArrayList<>();
         commands.addAll(playCommandMap.values());
         return Collections.frequency(commands, playCommand);
     }
 
+    public int scoreForWinner(String winner) {
+        PlayCommand playCommand = getPlayCommand(winner);
+        switch (playCommand) {
+            case ROCK:
+                return count(PlayCommand.SCISSORS);
+            case PAPER:
+                return count(PlayCommand.ROCK);
+            case SCISSORS:
+                return count(PlayCommand.PAPER);
+        }
+        return 0;
+    }
+
     public boolean isWonBy(String playerName) {
         PlayCommand playCommand = playCommandMap.get(playerName);
-        switch (playCommand){
+        switch (playCommand) {
             case ROCK:
                 if (count(PlayCommand.PAPER) == 0)
                     return !isDraw();

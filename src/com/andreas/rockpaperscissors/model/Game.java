@@ -5,15 +5,16 @@ import com.andreas.rockpaperscissors.util.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class Game implements PlayerInfoObserver, GamePlayObserver {
+public class Game implements NetObserver {
     private String playerName;
     private List<Player> playerList = new ArrayList<>();
     private AppController appController = AppController.getInstance();
-    private ArrayList<PlayersObserver> playersObservers = new ArrayList<>();
-    private ArrayList<RoundObserver> roundObservers = new ArrayList<>();
-    private Round round = null;
-    int totalPoints = 0;
+    private ArrayList<GameObserver> gameObservers = new ArrayList<>();
+    private GameRound gameRound = null;
+    private int totalScore = 0;
 
 
     public Game(String playerName) {
@@ -24,7 +25,7 @@ public class Game implements PlayerInfoObserver, GamePlayObserver {
     private void addPlayerIfNew(Player player) {
         if (!playerList.contains(player)) {
             playerList.add(player);
-            notifyPlayersObserversNewPlayer(player.getName());
+            notifyPlayerJoinedTheGame(player.getName());
             appController.sendPlayerInfo();
         }
     }
@@ -33,23 +34,23 @@ public class Game implements PlayerInfoObserver, GamePlayObserver {
         return playerName;
     }
 
-    private void notifyPlayersObserversNewPlayer(String newPlayer) {
+    private void notifyPlayerJoinedTheGame(String newPlayer) {
         List<String> playerNames = new ArrayList<>();
         for (Player player : playerList)
             playerNames.add(player.getName());
-        for (PlayersObserver playersObserver : playersObservers) {
-            playersObserver.newPlayer(newPlayer);
-            playersObserver.allPlayers(playerNames);
+        for (GameObserver gameObserver : gameObservers) {
+            gameObserver.playerJoinedTheGame(newPlayer);
+            gameObserver.allPlayers(playerNames);
         }
     }
 
-    private void notifyPlayersObserversPlayerLeft(String lostPlayer) {
+    private void notifyPlayerLeftTheGame(String lostPlayer) {
         List<String> playerNames = new ArrayList<>();
         for (Player player : playerList)
             playerNames.add(player.getName());
-        for (PlayersObserver playersObserver : playersObservers) {
-            playersObserver.playerLeft(lostPlayer);
-            playersObserver.allPlayers(playerNames);
+        for (GameObserver gameObserver : gameObservers) {
+            gameObserver.playerLeftTheGame(lostPlayer);
+            gameObserver.allPlayers(playerNames);
         }
     }
 
@@ -67,50 +68,67 @@ public class Game implements PlayerInfoObserver, GamePlayObserver {
             Player player = playerList.get(i);
             if (player.getName().equals(playerName)) {
                 playerList.remove(player);
-                notifyPlayersObserversPlayerLeft(playerName);
+                if (gameRound != null)
+                    gameRound.removePlayer(playerName);
+                notifyPlayerLeftTheGame(playerName);
                 i--;
             }
         }
 
     }
 
-    public void addPlayersObserver(PlayersObserver playersObserver) {
-        this.playersObservers.add(playersObserver);
-    }
 
     @Override
     public void playerPlaysCommand(String playerName, PlayCommand playCommand) {
-        if (round == null)
-            round = new Round(playerList, this);
-        round.playerPlaysCommand(playerName, playCommand);
+        if (gameRound == null)
+            gameRound = new GameRound(playerList, this);
+        gameRound.playerPlaysCommand(playerName, playCommand);
     }
 
-    public void roundCompleted(Round round) {
-        if (round.isDraw())
+    @Override
+    public void chatMessage(String message) {
+        for (GameObserver gameObserver : gameObservers)
+            gameObserver.chatMessage(message);
+    }
+
+    public void roundCompleted(GameRound gameRound) {
+        if (gameRound.isDraw())
             draw();
-        else if (round.isWonBy(getPlayerName()))
-            victory(1);
+        else if (gameRound.isWonBy(playerName))
+            victory(gameRound.scoreForWinner(playerName));
         else
             loss();
-        this.round = null;
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                newRound();
+            }
+        }, 3000);
     }
 
-    public void draw() {
-        for (RoundObserver roundObserver : roundObservers)
-            roundObserver.draw();
+    private void newRound() {
+        for (GameObserver gameObserver : gameObservers)
+            gameObserver.newRound(totalScore);
+        this.gameRound = null;
     }
 
-    public void loss() {
-        for (RoundObserver roundObserver : roundObservers)
-            roundObserver.loss();
+    private void draw() {
+        for (GameObserver gameObserver : gameObservers)
+            gameObserver.draw();
     }
 
-    public void victory(int roundScore) {
-        for (RoundObserver roundObserver : roundObservers)
-            roundObserver.victory(roundScore, totalPoints);
+    private void loss() {
+        for (GameObserver gameObserver : gameObservers)
+            gameObserver.loss();
     }
 
-    public void addRoundObserver(RoundObserver roundObserver) {
-        roundObservers.add(roundObserver);
+    private void victory(int roundScore) {
+        totalScore += roundScore;
+        for (GameObserver gameObserver : gameObservers)
+            gameObserver.victory(roundScore, totalScore);
+    }
+
+    public void addGameObserver(GameObserver gameObserver) {
+        gameObservers.add(gameObserver);
     }
 }
