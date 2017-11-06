@@ -123,7 +123,6 @@ public class NetHandler<T> {
 
     public void createServerSocket(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        Logger.log("Listening on port " + port);
     }
 
     private void startAccepting() {

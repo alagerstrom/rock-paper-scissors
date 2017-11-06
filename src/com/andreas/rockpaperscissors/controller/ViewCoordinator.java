@@ -79,7 +79,6 @@ public class ViewCoordinator implements
 
     }
 
-
     @Override
     public void skip(ActionEvent actionEvent) throws IOException {
         hideWindow(actionEvent);
