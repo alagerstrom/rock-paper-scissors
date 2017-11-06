@@ -73,6 +73,7 @@ public class ViewCoordinator implements
         startGameService.setOnSucceeded(event -> {
             Logger.log("StartGameService complete");
             showView(ViewPath.MAIN_VIEW);
+            showView(ViewPath.CONNECT_VIEW);
             hideWindow(actionEvent);
         });
         startGameService.start();
@@ -85,7 +86,7 @@ public class ViewCoordinator implements
     }
 
     @Override
-    public void launchGame(String remoteHostString, int remotePort, ActionEvent actionEvent) throws IOException {
+    public void connect(String remoteHostString, int remotePort, ActionEvent actionEvent) throws IOException {
         controller.connectTo(remoteHostString, remotePort);
         hideWindow(actionEvent);
     }

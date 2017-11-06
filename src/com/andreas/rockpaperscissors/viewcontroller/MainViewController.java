@@ -37,7 +37,7 @@ public class MainViewController implements ViewController<MainViewController.Del
     @FXML
     ListView playerList;
     @FXML
-    Text totalText, roundText, ipText, portText, nameText;
+    Text totalText, roundText, ipText, portText, nameText, statusText;
     @FXML
     Button rockButton, scissorsButton, paperButton;
 
@@ -46,7 +46,13 @@ public class MainViewController implements ViewController<MainViewController.Del
         printMessage("Rock Paper Scissors game started");
         Logger.log("Main view initialized");
 
+        nameText.setText(appController.getPlayerName());
+        statusText.setText("Welcome, make your choice!");
+
         updateScoreText(0, 0);
+
+        messages.setFocusTraversable(false);
+        messages.setEditable(false);
 
         appController.addGameObserver(new GameHandler());
         initializeIpAndPortTexts();
@@ -80,18 +86,21 @@ public class MainViewController implements ViewController<MainViewController.Del
     public void playRock() {
         disableButtons();
         appController.sendPlayRock();
+        statusText.setText("You played Rock!");
     }
 
     @FXML
     public void playPaper() {
         disableButtons();
         appController.sendPlayPaper();
+        statusText.setText("You played Paper!");
     }
 
     @FXML
     public void playScissors() {
         disableButtons();
         appController.sendPlayScissors();
+        statusText.setText("You played Scissors!");
     }
 
     @FXML
@@ -127,7 +136,7 @@ public class MainViewController implements ViewController<MainViewController.Del
 
         @Override
         public void draw() {
-            Platform.runLater(() -> printMessage("The round was a draw"));
+            Platform.runLater(()-> statusText.setText("Draw!"));
         }
 
         @Override
@@ -135,15 +144,14 @@ public class MainViewController implements ViewController<MainViewController.Del
             Platform.runLater(() -> {
                 printMessage("You won! Round: " + roundScore + ", Total: " + totalScore);
                 updateScoreText(roundScore, totalScore);
+                statusText.setText("You won!");
             });
 
         }
 
         @Override
         public void loss() {
-            Platform.runLater(() -> {
-                printMessage("You loose!");
-            });
+            Platform.runLater(() -> statusText.setText("You loose!"));
 
         }
 
@@ -152,6 +160,7 @@ public class MainViewController implements ViewController<MainViewController.Del
             Platform.runLater(()->{
                 enableButtons();
                 updateScoreText(0, totalScore);
+                statusText.setText("Make your choice!");
             });
         }
     }

@@ -22,7 +22,7 @@ public class ConnectViewController implements ViewController<ConnectViewControll
 
     public interface Delegate{
         void skip(ActionEvent actionEvent) throws IOException;
-        void launchGame(String remoteHostString, int remotePort, ActionEvent actionEvent) throws IOException;
+        void connect(String remoteHostString, int remotePort, ActionEvent actionEvent) throws IOException;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ConnectViewController implements ViewController<ConnectViewControll
 
             if (delegate != null){
                 try {
-                    delegate.launchGame(remoteHostString, remotePort, actionEvent);
+                    delegate.connect(remoteHostString, remotePort, actionEvent);
                 }catch (IOException e){
                     errorText.setText("Failed to connect.");
                 }

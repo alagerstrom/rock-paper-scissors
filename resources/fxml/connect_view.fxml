@@ -6,7 +6,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.andreas.rockpaperscissors.viewcontroller.ConnectViewController">
+<GridPane alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="252.0" prefWidth="414.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.andreas.rockpaperscissors.viewcontroller.ConnectViewController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -21,17 +21,23 @@
   </rowConstraints>
    <children>
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Remote IP:" GridPane.rowIndex="2" />
-      <TextField fx:id="hostField" onAction="#connect" promptText="Enter IP to connect to" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+      <TextField fx:id="hostField" onAction="#connect" promptText="Enter IP to connect to" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+         <tooltip>
+            <Tooltip text="IP address to connect to" />
+         </tooltip></TextField>
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Remote port:" GridPane.rowIndex="3" />
-      <TextField fx:id="hostPortField" onAction="#connect" promptText="Enter port to connect to" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+      <TextField fx:id="hostPortField" onAction="#connect" promptText="Enter port to connect to" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
+         <tooltip>
+            <Tooltip text="Port to connect to" />
+         </tooltip></TextField>
       <Text fx:id="errorText" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0" GridPane.columnSpan="2" GridPane.rowIndex="5">
          <children>
-            <Button mnemonicParsing="false" onAction="#skipConnect" prefWidth="100.0" text="Skip" />
+            <Button mnemonicParsing="false" onAction="#skipConnect" prefWidth="100.0" text="No" />
             <Button mnemonicParsing="false" onAction="#connect" prefWidth="100.0" text="Connect" />
          </children>
       </HBox>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Connect to another host, or press skip" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Do you want to connect to someone?" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Connect" GridPane.columnSpan="2" GridPane.halignment="CENTER">
          <font>
             <Font size="26.0" />
