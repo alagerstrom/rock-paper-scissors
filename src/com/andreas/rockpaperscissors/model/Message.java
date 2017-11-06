@@ -1,4 +1,4 @@
-package com.andreas.rockpaperscissors.net;
+package com.andreas.rockpaperscissors.model;
 
 import java.io.Serializable;
 

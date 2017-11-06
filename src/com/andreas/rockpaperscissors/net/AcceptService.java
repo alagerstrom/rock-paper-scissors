@@ -1,6 +1,5 @@
 package com.andreas.rockpaperscissors.net;
 
-import com.andreas.rockpaperscissors.util.Logger;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
@@ -22,16 +21,14 @@ public class AcceptService extends Service {
             @Override
             protected Object call() throws Exception {
                 if (serverSocket == null) {
-                    throw new Exception("AcceptService was started, but ServerSocket was null");
+                    throw new NetException("ServerSocket was null");
                 }
                 while (true) {
                     try {
-                        Logger.log("Waiting for connection...");
                         Socket clientSocket = serverSocket.accept();
                         NetHandler.getInstance().addConnection(clientSocket);
                     } catch (IOException e) {
-                        Logger.log("AcceptService failed");
-                        System.err.println("Server failure");
+                        throw new NetException("Server failure");
                     }
                 }
             }

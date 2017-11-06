@@ -1,7 +1,6 @@
 package com.andreas.rockpaperscissors.model;
 
 import com.andreas.rockpaperscissors.controller.AppController;
-import com.andreas.rockpaperscissors.net.PlayCommand;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class Game implements PlayerInfoObserver, GamePlayObserver {
 
     public Game(String playerName) {
         this.playerName = playerName;
-        appController.addPlayerInfoObserver(this);
     }
 
 

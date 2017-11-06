@@ -1,27 +1,42 @@
 package com.andreas.rockpaperscissors.net;
 
-import com.andreas.rockpaperscissors.controller.AppController;
-import com.andreas.rockpaperscissors.model.GamePlayObserver;
-import com.andreas.rockpaperscissors.model.PlayerInfoObserver;
 import com.andreas.rockpaperscissors.util.Logger;
-import com.andreas.rockpaperscissors.model.ChatObserver;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
-public class NetHandler {
+public class NetHandler<T> {
     private final static NetHandler instance = new NetHandler();
 
     private ServerSocket serverSocket;
     private final List<Connection> connections = new ArrayList<>();
-    private List<ChatObserver> chatObservers = new ArrayList<>();
-    private List<PlayerInfoObserver> playerInfoObservers = new ArrayList<>();
-    private ArrayList<String> knownPeers = new ArrayList<>();
-    private HashMap<String, Long> lastTimeHeardFromPeer = new HashMap<>();
-    private HashMap<String, Integer> seenMessages = new HashMap<>();
-    private ArrayList<GamePlayObserver> gamePlayObservers = new ArrayList<>();
-    private int myMessageNumber;
+
+    private int sendMessageCounter;
+    private ArrayList<Peer> knownPeers = new ArrayList<>();
+    private HashMap<Peer, Long> lastTimeHeardFromPeer = new HashMap<>();
+    private HashMap<Peer, Integer> seenMessages = new HashMap<>();
+    private Peer peer;
+
+    public void start(){
+        startAccepting();
+        startSendingHeartbeats();
+    }
+
+    public void setDelegate(Delegate delegate) {
+        this.delegate = delegate;
+    }
+
+    private Delegate delegate;
+    public interface Delegate<T> {
+
+        void onNewMessage(T message);
+        void peerNotResponding(String uniqueName);
+    }
+
+    public void setUniqueName(String uniqueName){
+        this.peer = new Peer(uniqueName);
+    }
 
 
     public static NetHandler getInstance() {
@@ -47,12 +62,14 @@ public class NetHandler {
 
     private void checkIfHeartbeatsHaveBeenReceived() {
         for (int i = 0; i < knownPeers.size(); i++){
-            String peer = knownPeers.get(i);
+            Peer peer = knownPeers.get(i);
+            if (peer == null)
+                return;
             long now = System.currentTimeMillis();
             long lastHeartbeat = lastTimeHeardFromPeer.get(peer);
             if (now - lastHeartbeat > 3000){
-                for (PlayerInfoObserver playerInfoObserver : playerInfoObservers)
-                    playerInfoObserver.playerNotResponding(peer);
+                if (delegate != null)
+                    delegate.peerNotResponding(peer.getName());
                 seenMessages.remove(peer);
                 lastTimeHeardFromPeer.remove(peer);
                 knownPeers.remove(peer);
@@ -64,18 +81,17 @@ public class NetHandler {
     private NetHandler() {
 
     }
-    public void startSendingHeartbeats(){
+    private void startSendingHeartbeats(){
         Timer timer = new Timer(true);
         timer.schedule(new HeartbeatSender(), 0, 1000);
         timer.schedule(new HeartbeatCounter(), 0, 500);
     }
     private void sendHeartbeat() throws IOException {
-        sendMessage(new Message(MessageType.HEARTBEAT).setSenderName(AppController.getInstance().getPlayerName()));
+        NetMessage<T> netMessage = new NetMessage<>(NetMessageType.HEARTBEAT);
+        sendNetMessage(netMessage);
+
     }
 
-    public void addPlayerInfoObserver(PlayerInfoObserver playerInfoObserver) {
-        this.playerInfoObservers.add(playerInfoObserver);
-    }
 
     public InetAddress getLocalHost() throws UnknownHostException {
         return InetAddress.getLocalHost();
@@ -84,7 +100,7 @@ public class NetHandler {
         return serverSocket.getLocalPort();
     }
 
-    public void removeConnection(Connection connection){
+    void removeConnection(Connection connection){
         synchronized (connections){
             connections.remove(connection);
         }
@@ -96,13 +112,12 @@ public class NetHandler {
     }
 
     public void connectTo(String host, int port) throws IOException {
-        Logger.log("NetHandler should connectButtonClicked to " + host + ", " + port);
+        Logger.log("NetHandler should connect to " + host + ", " + port);
         Socket socket = new Socket();
         socket.connect(new InetSocketAddress(host, port));
         synchronized (connections){
             connections.add(new Connection(socket));
         }
-        AppController.getInstance().sendPlayerInfo();
     }
 
 
@@ -111,43 +126,37 @@ public class NetHandler {
         Logger.log("Listening on port " + port);
     }
 
-    public void startAccepting() {
+    private void startAccepting() {
         new AcceptService(serverSocket).start();
     }
 
-    private void broadcast(Message message) throws IOException {
-        handleIncomingMessage(message);
+    private void broadcast(NetMessage<T> netMessage) throws IOException {
+        handleIncomingMessage(netMessage);
         synchronized (connections) {
             for (Connection connection : connections)
-                connection.send(message);
+                connection.send(netMessage);
         }
     }
 
 
-    void handleIncomingMessage(Message message) throws IOException {
-        if (!isNewMessage(message))
+    void handleIncomingMessage(NetMessage netMessage) throws IOException {
+        if (!isNewMessage(netMessage))
             return;
-        broadcast(message);
-        Logger.log("Received message " + message.getType() + ", "
-                + message.getSenderName() + ", "
-                + message.getNumber() + ", "
-                + message.getContent());
-        switch (message.getType()) {
-            case CHAT:
-                notifyChatObservers(message.getContent());
-                break;
-            case PLAYER_INFO:
-                notifyPlayerObservers(message.getContent());
-                break;
-            case PLAY:
-                Logger.log("Received: " + message.getSenderName() + " plays " + message.getPlayCommand());
-                notifyGamePlayObservers(message.getSenderName(), message.getPlayCommand());
+        broadcast(netMessage);
+        Logger.log("Received message " + netMessage.getType() + ", "
+                + netMessage.getSender() + ", "
+                + netMessage.getNumber() + ", "
+                + netMessage.getContent());
+        switch (netMessage.getType()) {
+            case MESSAGE:
+                if (delegate != null)
+                    delegate.onNewMessage(netMessage.getContent());
                 break;
             case HEARTBEAT:
                 long now = System.currentTimeMillis();
-                lastTimeHeardFromPeer.put(message.getSenderName(), now);
-                if (!knownPeers.contains(message.getSenderName()))
-                    knownPeers.add(message.getSenderName());
+                lastTimeHeardFromPeer.put(netMessage.getSender(), now);
+                if (!knownPeers.contains(netMessage.getSender()))
+                    knownPeers.add(netMessage.getSender());
                 break;
             default:
                 Logger.log("Received unknown message");
@@ -155,44 +164,31 @@ public class NetHandler {
         }
     }
 
-    private boolean isNewMessage(Message message) {
+    private boolean isNewMessage(NetMessage netMessage) {
         boolean isNew = false;
-        if (seenMessages.containsKey(message.getSenderName())){
-            int oldNumber = seenMessages.get(message.getSenderName());
-            if (oldNumber < message.getNumber())
+        if (seenMessages.containsKey(netMessage.getSender())){
+            int oldNumber = seenMessages.get(netMessage.getSender());
+            if (oldNumber < netMessage.getNumber())
                 isNew = true;
         }else{
             isNew = true;
         }
         if (isNew)
-            seenMessages.put(message.getSenderName(), message.getNumber());
+            seenMessages.put(netMessage.getSender(), netMessage.getNumber());
         return isNew;
     }
 
-    private void notifyPlayerObservers(String playerName) {
-        for (PlayerInfoObserver playerInfoObserver : playerInfoObservers){
-            playerInfoObserver.playerInfo(playerName);
-        }
+
+
+    public void sendMessage(T message) throws IOException {
+        NetMessage<T> netMessage = new NetMessage<>(NetMessageType.MESSAGE);
+        netMessage.setContent(message);
+        sendNetMessage(netMessage);
+    }
+    private void sendNetMessage(NetMessage<T> netMessage) throws IOException {
+        netMessage.setNumber(sendMessageCounter++);
+        netMessage.setSender(peer);
+        broadcast(netMessage);
     }
 
-    private void notifyChatObservers(String messageContent) {
-        for (ChatObserver chatObserver : chatObservers)
-            chatObserver.newMessage(messageContent);
-    }
-
-    public void addChatObserver(ChatObserver chatObserver) {
-        this.chatObservers.add(chatObserver);
-    }
-
-    public void sendMessage(Message message) throws IOException {
-        broadcast(message.setNumber(myMessageNumber++));
-    }
-
-    public void addGamePlayObserver(GamePlayObserver gamePlayObserver){
-        gamePlayObservers.add(gamePlayObserver);
-    }
-    private void notifyGamePlayObservers(String playerName, PlayCommand playCommand){
-        for (GamePlayObserver gamePlayObserver : gamePlayObservers)
-            gamePlayObserver.playerPlaysCommand(playerName, playCommand);
-    }
 }

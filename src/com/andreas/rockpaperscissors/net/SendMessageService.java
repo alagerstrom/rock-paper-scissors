@@ -1,5 +1,6 @@
 package com.andreas.rockpaperscissors.net;
 
+import com.andreas.rockpaperscissors.model.Message;
 import com.andreas.rockpaperscissors.util.Logger;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;

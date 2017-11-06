@@ -1,6 +1,5 @@
 package com.andreas.rockpaperscissors.model;
 
-import com.andreas.rockpaperscissors.net.PlayCommand;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.util.*;

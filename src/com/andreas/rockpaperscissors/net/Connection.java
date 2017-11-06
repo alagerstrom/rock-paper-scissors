@@ -1,10 +1,10 @@
 package com.andreas.rockpaperscissors.net;
 
-
 import com.andreas.rockpaperscissors.util.Logger;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -33,12 +33,14 @@ public class Connection extends Service {
                 Logger.log("Connection running");
                 while (true){
                     try{
-                        Message message = (Message) inputStream.readObject();
-                        netHandler.handleIncomingMessage(message);
-                    }catch (Exception e){
+                        NetMessage netMessage = (NetMessage) inputStream.readObject();
+                        netHandler.handleIncomingMessage(netMessage);
+                    }catch (EOFException e){
                         Logger.log("Removing connection " + socket.getInetAddress() + ":" + socket.getPort());
                         netHandler.removeConnection(Connection.this);
                         break;
+                    }catch (Exception e){
+                        throw new NetException(e.getMessage());
                     }
                 }
                 return null;
@@ -46,7 +48,7 @@ public class Connection extends Service {
         };
     }
 
-    public synchronized void send(Message message) throws IOException {
-        outputStream.writeObject(message);
+    public synchronized void send(NetMessage netMessage) throws IOException {
+        outputStream.writeObject(netMessage);
     }
 }

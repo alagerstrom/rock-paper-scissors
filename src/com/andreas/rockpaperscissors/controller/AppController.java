@@ -1,13 +1,11 @@
 package com.andreas.rockpaperscissors.controller;
 
 import com.andreas.rockpaperscissors.model.*;
-import com.andreas.rockpaperscissors.net.*;
 import com.andreas.rockpaperscissors.util.Logger;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.function.Consumer;
 
 public class AppController {
@@ -15,7 +13,7 @@ public class AppController {
 
 
     private Game game;
-    private final NetHandler netHandler = NetHandler.getInstance();
+    private NetDelegate netDelegate = new NetDelegate();
 
     private AppController() {
         Logger.log("AppController created");
@@ -27,20 +25,22 @@ public class AppController {
 
     public void createNewGame(String playerName) {
         Logger.log("AppController starting new game");
+        netDelegate.setPlayerName(playerName);
         game = new Game(playerName);
-        netHandler.addGamePlayObserver(game);
-        netHandler.startAccepting();
-        netHandler.startSendingHeartbeats();
+        addPlayerInfoObserver(game);
+        netDelegate.addGamePlayObserver(game);
+        netDelegate.start();
     }
 
 
     public void connectTo(String host, int port) throws IOException {
         Logger.log("I should connectTo " + host + ", " + port);
-        netHandler.connectTo(host, port);
+        netDelegate.connectTo(host, port);
+        sendPlayerInfo();
     }
 
     public void addPlayerInfoObserver(PlayerInfoObserver playerInfoObserver) {
-        netHandler.addPlayerInfoObserver(playerInfoObserver);
+        netDelegate.addPlayerInfoObserver(playerInfoObserver);
     }
 
     public void getLocalHost(Consumer consumer) {
@@ -51,7 +51,7 @@ public class AppController {
                 return new Task() {
                     @Override
                     protected Object call() throws Exception {
-                        String localHost = netHandler.getLocalHost().toString();
+                        String localHost = netDelegate.getLocalHost();
                         String tokens[] = localHost.split("/");
                         if (tokens.length < 1)
                             consumer.accept("");
@@ -64,15 +64,15 @@ public class AppController {
         service.start();
     }
     public int getLocalPort(){
-        return netHandler.getLocalPort();
+        return netDelegate.getLocalPort();
     }
 
     public void setPortToUse(int port) throws IOException {
-        netHandler.createServerSocket(port);
+        netDelegate.createServerSocket(port);
     }
 
     public void addChatObserver(ChatObserver chatObserver) {
-        netHandler.addChatObserver(chatObserver);
+        netDelegate.addChatObserver(chatObserver);
     }
 
     public void sendPlayerInfo() {
@@ -88,8 +88,7 @@ public class AppController {
     }
 
     private void sendMessageOnNewThread(Message message) {
-        SendMessageService sendMessageService = new SendMessageService(message.setSenderName(game.getPlayerName()));
-        sendMessageService.start();
+        netDelegate.sendMessageOnNewThread(message);
     }
 
     public void addPlayersObserver(PlayersObserver playersObserver) {
