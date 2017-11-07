@@ -12,23 +12,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import com.andreas.rockpaperscissors.util.Logger;
 
+import java.nio.channels.CompletionHandler;
 import java.util.List;
-import java.util.function.Consumer;
 
-public class MainViewController implements ViewController<MainViewController.Delegate> {
+public class MainViewController {
 
     private AppController appController = AppController.getInstance();
-
-    public interface Delegate {
-        void connectButtonClicked();
-    }
-
-    private Delegate delegate;
-
-    @Override
-    public void setDelegate(Delegate delegate) {
-        this.delegate = delegate;
-    }
 
     @FXML
     TextField messageField;
@@ -46,7 +35,18 @@ public class MainViewController implements ViewController<MainViewController.Del
         printMessage("Rock Paper Scissors game started");
         Logger.log("Main view initialized");
 
-        nameText.setText(appController.getPlayerName());
+        appController.getPlayerName(new CompletionHandler<String, Void>() {
+            @Override
+            public void completed(String result, Void attachment) {
+                Platform.runLater(()->{
+                    nameText.setText(result);
+                });
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) { }
+        });
+
         statusText.setText("Welcome, make your choice!");
 
         updateScoreText(0, 0);
@@ -56,7 +56,7 @@ public class MainViewController implements ViewController<MainViewController.Del
 
         appController.addGameObserver(new GameHandler());
         initializeIpAndPortTexts();
-        appController.sendPlayerInfo();
+        appController.sendPlayerInfo(null);
     }
 
     private void updateScoreText(int roundScore, int totalScore) {
@@ -68,8 +68,17 @@ public class MainViewController implements ViewController<MainViewController.Del
     @FXML
     public void sendChatMessage() {
         String messageContent = messageField.getText();
-        appController.sendChatMessage(messageContent);
-        messageField.setText("");
+        appController.sendChatMessage(messageContent, new CompletionHandler<Void, Void>() {
+            @Override
+            public void completed(Void result, Void attachment) {
+                messageField.setText("");
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) {
+                Logger.log("Failed to send chat message");
+            }
+        });
     }
 
     private synchronized void printMessage(String message) {
@@ -77,36 +86,64 @@ public class MainViewController implements ViewController<MainViewController.Del
     }
 
     private void initializeIpAndPortTexts() {
-        String portNumber = "" + appController.getLocalPort();
-        portText.setText(portNumber);
-        appController.getLocalHost(new LocalHostHandler());
+        appController.getLocalPort(new CompletionHandler<Integer, Void>() {
+            @Override
+            public void completed(Integer result, Void attachment) {
+                Platform.runLater(()->portText.setText("" + result));
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) { }
+        });
+        ipText.setText("[Getting...]");
+        appController.getLocalHost(new CompletionHandler<String, Void>() {
+            @Override
+            public void completed(String result, Void attachment) {
+                Platform.runLater(()->ipText.setText(result));
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) {
+                Platform.runLater(()->ipText.setText("[No IP]"));
+            }
+        });
+    }
+
+    private class PlayCompletionHandler implements CompletionHandler<Void, Void>{
+        @Override
+        public void completed(Void result, Void attachment) { }
+
+        @Override
+        public void failed(Throwable exc, Void attachment) {
+            Logger.log("Failed to send");
+            Platform.runLater(()->enableButtons());
+        }
     }
 
     @FXML
     public void playRock() {
         disableButtons();
-        appController.sendPlayRock();
         statusText.setText("You played Rock!");
+        appController.sendPlayRock(new PlayCompletionHandler());
     }
 
     @FXML
     public void playPaper() {
         disableButtons();
-        appController.sendPlayPaper();
         statusText.setText("You played Paper!");
+        appController.sendPlayPaper(new PlayCompletionHandler());
     }
 
     @FXML
     public void playScissors() {
         disableButtons();
-        appController.sendPlayScissors();
         statusText.setText("You played Scissors!");
+        appController.sendPlayScissors(new PlayCompletionHandler());
     }
 
     @FXML
     private void connectButtonClicked() {
-        if (delegate != null)
-            delegate.connectButtonClicked();
+        ViewCoordinator.getInstance().showView(ViewPath.CONNECT_VIEW);
     }
 
     private class GameHandler implements GameObserver {
@@ -173,12 +210,5 @@ public class MainViewController implements ViewController<MainViewController.Del
         rockButton.setDisable(true);
         paperButton.setDisable(true);
         scissorsButton.setDisable(true);
-    }
-
-    private class LocalHostHandler implements Consumer {
-        @Override
-        public void accept(Object o) {
-            ipText.setText(o.toString());
-        }
     }
 }

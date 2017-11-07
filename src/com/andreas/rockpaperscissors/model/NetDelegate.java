@@ -2,7 +2,6 @@ package com.andreas.rockpaperscissors.model;
 
 import com.andreas.rockpaperscissors.controller.AppController;
 import com.andreas.rockpaperscissors.net.NetHandler;
-import com.andreas.rockpaperscissors.net.SendMessageService;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
@@ -75,8 +74,8 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
 
 
 
-    public void sendMessageOnNewThread(Message message) {
-        netHandler.sendMessage(message.setSenderName(AppController.getInstance().getPlayerName()));
+    public void sendMessage(Message message) throws IOException {
+        netHandler.sendMessage(message);
     }
 
     public String getLocalHost() throws UnknownHostException {

@@ -1,5 +1,7 @@
 package com.andreas.rockpaperscissors.viewcontroller;
 
+import com.andreas.rockpaperscissors.controller.AppController;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -8,8 +10,9 @@ import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
+import java.nio.channels.CompletionHandler;
 
-public class ConnectViewController implements ViewController<ConnectViewController.Delegate>{
+public class ConnectViewController {
 
     @FXML
     TextField hostField;
@@ -18,22 +21,10 @@ public class ConnectViewController implements ViewController<ConnectViewControll
     @FXML
     Text errorText;
 
-    private Delegate delegate;
-
-    public interface Delegate{
-        void skip(ActionEvent actionEvent) throws IOException;
-        void connect(String remoteHostString, int remotePort, ActionEvent actionEvent) throws IOException;
-    }
-
-    @Override
-    public void setDelegate(Delegate delegate) {
-        this.delegate = delegate;
-    }
 
     @FXML
     public void skipConnect(ActionEvent actionEvent) throws IOException {
-        if (delegate != null)
-            delegate.skip(actionEvent);
+        ViewCoordinator.getInstance().hideWindow(actionEvent);
     }
 
     @FXML
@@ -50,15 +41,19 @@ public class ConnectViewController implements ViewController<ConnectViewControll
                 return;
             }
 
-            if (delegate != null){
-                try {
-                    delegate.connect(remoteHostString, remotePort, actionEvent);
-                }catch (IOException e){
-                    errorText.setText("Failed to connect.");
+            AppController.getInstance().connectTo(remoteHostString, remotePort, new CompletionHandler<Void, Void>() {
+                @Override
+                public void completed(Void result, Void attachment) {
+                    Platform.runLater(()->{
+                        ViewCoordinator.getInstance().hideWindow(actionEvent);
+                    });
                 }
-            }else {
-                Logger.log("Delegate was null");
-            }
+
+                @Override
+                public void failed(Throwable exc, Void attachment) {
+                    Platform.runLater(()-> errorText.setText("Failed to connect"));
+                }
+            });
         } else {
             errorText.setText("You must enter both host and port.");
         }

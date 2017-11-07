@@ -155,15 +155,12 @@ public class NetHandler<T> {
 
 
 
-    public void sendMessage(T message) {
-        createSendMessageService(message);
+    public void sendMessage(T message) throws IOException {
+        NetMessage<T> netMessage = new NetMessage<>(NetMessageType.MESSAGE);
+        netMessage.setContent(message);
+        sendNetMessage(netMessage);
     }
-
-    private void createSendMessageService(T message){
-        SendMessageService<T> sendMessageService = new SendMessageService<>(message, this);
-        sendMessageService.start();
-    }
-    void sendNetMessage(NetMessage<T> netMessage) throws IOException {
+    private void sendNetMessage(NetMessage<T> netMessage) throws IOException {
         netMessage.setNumber(sendMessageCounter++);
         netMessage.setSender(peer);
         broadcast(netMessage);

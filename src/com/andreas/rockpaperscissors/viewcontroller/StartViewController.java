@@ -1,7 +1,6 @@
 package com.andreas.rockpaperscissors.viewcontroller;
 
-import com.andreas.rockpaperscissors.controller.CompletionHandler;
-import com.andreas.rockpaperscissors.controller.ViewCoordinator;
+import com.andreas.rockpaperscissors.controller.AppController;
 import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 import javafx.application.Platform;
@@ -11,9 +10,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
-import java.util.function.Consumer;
+import java.nio.channels.CompletionHandler;
 
-public class StartViewController implements ViewController<StartViewController.Delegate> {
+public class StartViewController {
 
     @FXML
     TextField nameField;
@@ -22,18 +21,7 @@ public class StartViewController implements ViewController<StartViewController.D
     @FXML
     Text errorText;
 
-    public interface Delegate{
-        void startGame(String name, int port, CompletionHandler completionHandler) throws IOException;
-    }
-
-    private Delegate delegate;
-
-    @Override
-    public void setDelegate(Delegate delegate) {
-        this.delegate = delegate;
-    }
-
-    public void initialize(){
+    public void initialize() {
         portField.setText("" + Constants.DEFAULT_PORT);
         errorText.setText("");
         Platform.runLater(() -> nameField.requestFocus());
@@ -47,28 +35,29 @@ public class StartViewController implements ViewController<StartViewController.D
 
         Logger.log("Name: " + playerName);
         int port;
-        try{
+        try {
             port = Integer.parseInt(portNumber);
-        }catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             errorText.setText("Invalid port number");
             return;
         }
 
-        if (delegate != null)
-            delegate.startGame(playerName, port, new CompletionHandler() {
-                @Override
-                public void onSuccess() {
+        AppController.getInstance().createNewGame(playerName, port, new CompletionHandler<Void, Void>() {
+            @Override
+            public void completed(Void result, Void attachment) {
+                Platform.runLater(() -> {
                     ViewCoordinator viewCoordinator = ViewCoordinator.getInstance();
                     viewCoordinator.showView(ViewPath.MAIN_VIEW);
                     viewCoordinator.showView(ViewPath.CONNECT_VIEW);
                     viewCoordinator.hideWindow(actionEvent);
-                }
+                });
+            }
 
-                @Override
-                public void onFailure() {
-                    errorText.setText("Failed to use that port, try another one.");
-                }
-            });
+            @Override
+            public void failed(Throwable exc, Void attachment) {
+                errorText.setText("Failed to use that port, try another one.");
+            }
+        });
 
     }
 }

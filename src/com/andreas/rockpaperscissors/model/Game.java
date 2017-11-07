@@ -26,7 +26,7 @@ public class Game implements NetObserver {
         if (!playerList.contains(player)) {
             playerList.add(player);
             notifyPlayerJoinedTheGame(player.getName());
-            appController.sendPlayerInfo();
+            appController.sendPlayerInfo(null);
         }
     }
 
