@@ -10,8 +10,10 @@ import java.net.Socket;
 public class AcceptService extends Service {
 
     private final ServerSocket serverSocket;
+    private final NetHandler netHandler;
 
-    public AcceptService(ServerSocket serverSocket) {
+    public AcceptService(ServerSocket serverSocket, NetHandler netHandler) {
+        this.netHandler = netHandler;
         this.serverSocket = serverSocket;
     }
 
@@ -26,7 +28,7 @@ public class AcceptService extends Service {
                 while (true) {
                     try {
                         Socket clientSocket = serverSocket.accept();
-                        NetHandler.getInstance().addConnection(clientSocket);
+                        netHandler.addConnection(clientSocket);
                     } catch (IOException e) {
                         throw new NetException("Server failure");
                     }

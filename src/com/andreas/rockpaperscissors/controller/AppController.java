@@ -6,14 +6,14 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class AppController {
     private final static AppController instance = new AppController();
 
-
     private Game game;
-    private NetDelegate netDelegate = new NetDelegate();
+    private NetDelegate netDelegate;
 
     private AppController() {
         Logger.log("AppController created");
@@ -23,19 +23,25 @@ public class AppController {
         return instance;
     }
 
-    public void createNewGame(String playerName) {
-        Logger.log("AppController starting new game");
-        netDelegate.setPlayerName(playerName);
-        game = new Game(playerName);
-        netDelegate.addNetObserver(game);
-        netDelegate.start();
+    public void createNewGame(String playerName, int port, CompletionHandler completionHandler) {
+        CompletableFuture.runAsync(()->{
+            game = new Game(playerName);
+            netDelegate = new NetDelegate(playerName);
+            try {
+                netDelegate.createServerSocket(port);
+                netDelegate.addNetObserver(game);
+                completionHandler.onSuccess();
+            } catch (IOException e) {
+                completionHandler.onFailure();
+            }
+        });
     }
 
 
     public void connectTo(String host, int port) throws IOException {
-        Logger.log("I should connectTo " + host + ", " + port);
         netDelegate.connectTo(host, port);
         sendPlayerInfo();
+
     }
 
     public void getLocalHost(Consumer consumer) {
@@ -60,10 +66,6 @@ public class AppController {
     }
     public int getLocalPort(){
         return netDelegate.getLocalPort();
-    }
-
-    public void setPortToUse(int port) throws IOException {
-        netDelegate.createServerSocket(port);
     }
 
     public void sendPlayerInfo() {

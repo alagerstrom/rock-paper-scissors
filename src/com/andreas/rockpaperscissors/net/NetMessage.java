@@ -10,11 +10,11 @@ public class NetMessage<T> implements Serializable{
 
 
 
-    public NetMessage(NetMessageType type) {
+    NetMessage(NetMessageType type) {
         this.type = type;
     }
 
-    public NetMessageType getType() {
+    NetMessageType getType() {
         return type;
     }
 
@@ -23,29 +23,29 @@ public class NetMessage<T> implements Serializable{
         return this;
     }
 
-    public T getContent() {
+    T getContent() {
         return content;
     }
 
-    public NetMessage setContent(T content) {
+    NetMessage setContent(T content) {
         this.content = content;
         return this;
     }
 
-    public int getNumber() {
+    int getNumber() {
         return number;
     }
 
-    public NetMessage setNumber(int number) {
+    NetMessage setNumber(int number) {
         this.number = number;
         return this;
     }
 
-    public Peer getSender() {
+    Peer getSender() {
         return sender;
     }
 
-    public NetMessage setSender(Peer sender) {
+    NetMessage setSender(Peer sender) {
         this.sender = sender;
         return this;
     }

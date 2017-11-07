@@ -35,12 +35,12 @@ public class ViewCoordinator implements
         showView(ViewPath.START_VIEW);
     }
 
-    private void hideWindow(ActionEvent actionEvent) {
+    public void hideWindow(ActionEvent actionEvent) {
         Node node = (Node) actionEvent.getSource();
         node.getScene().getWindow().hide();
     }
 
-    private void showView(ViewPath viewPath) {
+    public void showView(ViewPath viewPath) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath.name));
         Parent root = null;
         try {
@@ -64,20 +64,12 @@ public class ViewCoordinator implements
         stage.setScene(scene);
         stage.setTitle(Constants.WINDOW_TITLE);
         stage.show();
+
     }
 
     @Override
-    public void startGame(String name, int port, ActionEvent actionEvent, Consumer<Exception> onError) throws IOException {
-
-        StartGameService startGameService = new StartGameService(AppController.getInstance(), port, name, onError);
-        startGameService.setOnSucceeded(event -> {
-            Logger.log("StartGameService complete");
-            showView(ViewPath.MAIN_VIEW);
-            showView(ViewPath.CONNECT_VIEW);
-            hideWindow(actionEvent);
-        });
-        startGameService.start();
-
+    public void startGame(String name, int port, CompletionHandler completionHandler) {
+        AppController.getInstance().createNewGame(name, port, completionHandler);
     }
 
     @Override

@@ -68,6 +68,7 @@ public class ConnectViewController implements ViewController<ConnectViewControll
 
     public void initialize() {
         errorText.setText("");
+        hostField.setText("localhost");
         hostPortField.setText(Constants.DEFAULT_PORT + "");
         Logger.log("Join View initialized");
     }

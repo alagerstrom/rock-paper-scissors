@@ -14,13 +14,15 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
 
     private List<NetObserver> netObservers = new ArrayList<>();
 
-    private NetHandler netHandler = NetHandler.getInstance();
+    private NetHandler<Message> netHandler;
+    private String uniqueName;
 
-    public NetDelegate() {
-        netHandler.setDelegate(this);
+    public NetDelegate(String uniqueName) {
+        this.uniqueName = uniqueName;
     }
-    public void start(){
-        netHandler.start();
+
+    public void createServerSocket(int port) throws IOException {
+        netHandler = new NetHandler<>(uniqueName, port, this);
     }
 
     @Override
@@ -71,13 +73,10 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
         netHandler.connectTo(host, port);
     }
 
-    public void createServerSocket(int port) throws IOException {
-        netHandler.createServerSocket(port);
-    }
+
 
     public void sendMessageOnNewThread(Message message) {
-        SendMessageService sendMessageService = new SendMessageService(message.setSenderName(AppController.getInstance().getPlayerName()));
-        sendMessageService.start();
+        netHandler.sendMessage(message.setSenderName(AppController.getInstance().getPlayerName()));
     }
 
     public String getLocalHost() throws UnknownHostException {
@@ -88,7 +87,4 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
         return netHandler.getLocalPort();
     }
 
-    public void setPlayerName(String playerName) {
-        netHandler.setUniqueName(playerName);
-    }
 }

@@ -7,8 +7,6 @@ import java.net.*;
 import java.util.*;
 
 public class NetHandler<T> {
-    private final static NetHandler instance = new NetHandler();
-
     private ServerSocket serverSocket;
     private final List<Connection> connections = new ArrayList<>();
 
@@ -18,30 +16,20 @@ public class NetHandler<T> {
     private HashMap<Peer, Integer> seenMessages = new HashMap<>();
     private Peer peer;
 
-    public void start(){
-        startAccepting();
+    public NetHandler(String uniqueName, int port, Delegate<T> delegate) throws IOException {
+        this.delegate = delegate;
+        this.peer = new Peer(uniqueName);
+        serverSocket = new ServerSocket(port);
+        new AcceptService(serverSocket, this).start();
         startSendingHeartbeats();
     }
 
-    public void setDelegate(Delegate delegate) {
-        this.delegate = delegate;
-    }
-
-    private Delegate delegate;
+    private Delegate<T> delegate;
     public interface Delegate<T> {
-
         void onNewMessage(T message);
         void peerNotResponding(String uniqueName);
     }
 
-    public void setUniqueName(String uniqueName){
-        this.peer = new Peer(uniqueName);
-    }
-
-
-    public static NetHandler getInstance() {
-        return instance;
-    }
 
     private class HeartbeatSender extends TimerTask{
         @Override
@@ -58,6 +46,7 @@ public class NetHandler<T> {
         public void run() {
             checkIfHeartbeatsHaveBeenReceived();
         }
+
     }
 
     private void checkIfHeartbeatsHaveBeenReceived() {
@@ -77,10 +66,6 @@ public class NetHandler<T> {
             }
         }
     }
-
-    private NetHandler() {
-
-    }
     private void startSendingHeartbeats(){
         Timer timer = new Timer(true);
         timer.schedule(new HeartbeatSender(), 0, 1000);
@@ -91,7 +76,6 @@ public class NetHandler<T> {
         sendNetMessage(netMessage);
 
     }
-
 
     public InetAddress getLocalHost() throws UnknownHostException {
         return InetAddress.getLocalHost();
@@ -107,7 +91,7 @@ public class NetHandler<T> {
     }
 
     void addConnection(Socket socket) throws IOException {
-        connections.add(new Connection(socket));
+        connections.add(new Connection(socket, this));
         Logger.log("Added connection.");
     }
 
@@ -116,17 +100,8 @@ public class NetHandler<T> {
         Socket socket = new Socket();
         socket.connect(new InetSocketAddress(host, port));
         synchronized (connections){
-            connections.add(new Connection(socket));
+            connections.add(new Connection(socket, this));
         }
-    }
-
-
-    public void createServerSocket(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-    }
-
-    private void startAccepting() {
-        new AcceptService(serverSocket).start();
     }
 
     private void broadcast(NetMessage<T> netMessage) throws IOException {
@@ -138,7 +113,7 @@ public class NetHandler<T> {
     }
 
 
-    void handleIncomingMessage(NetMessage netMessage) throws IOException {
+    void handleIncomingMessage(NetMessage<T> netMessage) throws IOException {
         if (!isNewMessage(netMessage))
             return;
         broadcast(netMessage);
@@ -148,8 +123,9 @@ public class NetHandler<T> {
                 + netMessage.getContent());
         switch (netMessage.getType()) {
             case MESSAGE:
-                if (delegate != null)
+                if (delegate != null){
                     delegate.onNewMessage(netMessage.getContent());
+                }
                 break;
             case HEARTBEAT:
                 long now = System.currentTimeMillis();
@@ -179,12 +155,15 @@ public class NetHandler<T> {
 
 
 
-    public void sendMessage(T message) throws IOException {
-        NetMessage<T> netMessage = new NetMessage<>(NetMessageType.MESSAGE);
-        netMessage.setContent(message);
-        sendNetMessage(netMessage);
+    public void sendMessage(T message) {
+        createSendMessageService(message);
     }
-    private void sendNetMessage(NetMessage<T> netMessage) throws IOException {
+
+    private void createSendMessageService(T message){
+        SendMessageService<T> sendMessageService = new SendMessageService<>(message, this);
+        sendMessageService.start();
+    }
+    void sendNetMessage(NetMessage<T> netMessage) throws IOException {
         netMessage.setNumber(sendMessageCounter++);
         netMessage.setSender(peer);
         broadcast(netMessage);

@@ -1,5 +1,7 @@
 package com.andreas.rockpaperscissors.viewcontroller;
 
+import com.andreas.rockpaperscissors.controller.CompletionHandler;
+import com.andreas.rockpaperscissors.controller.ViewCoordinator;
 import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 import javafx.application.Platform;
@@ -21,7 +23,7 @@ public class StartViewController implements ViewController<StartViewController.D
     Text errorText;
 
     public interface Delegate{
-        void startGame(String name, int port, ActionEvent actionEvent, Consumer<Exception> onError) throws IOException;
+        void startGame(String name, int port, CompletionHandler completionHandler) throws IOException;
     }
 
     private Delegate delegate;
@@ -53,7 +55,20 @@ public class StartViewController implements ViewController<StartViewController.D
         }
 
         if (delegate != null)
-            delegate.startGame(playerName, port, actionEvent,
-                    e -> errorText.setText("Failed to use that port, try another one."));
+            delegate.startGame(playerName, port, new CompletionHandler() {
+                @Override
+                public void onSuccess() {
+                    ViewCoordinator viewCoordinator = ViewCoordinator.getInstance();
+                    viewCoordinator.showView(ViewPath.MAIN_VIEW);
+                    viewCoordinator.showView(ViewPath.CONNECT_VIEW);
+                    viewCoordinator.hideWindow(actionEvent);
+                }
+
+                @Override
+                public void onFailure() {
+                    errorText.setText("Failed to use that port, try another one.");
+                }
+            });
+
     }
 }

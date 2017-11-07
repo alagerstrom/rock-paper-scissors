@@ -10,15 +10,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-public class Connection extends Service {
+public class Connection<T> extends Service {
 
-    private Socket socket;
-    private NetHandler netHandler = NetHandler.getInstance();
-    private ObjectInputStream inputStream;
-    private ObjectOutputStream outputStream;
+    private final Socket socket;
+    private final NetHandler netHandler;
+    private final ObjectInputStream inputStream;
+    private final ObjectOutputStream outputStream;
 
 
-    public Connection(Socket socket) throws IOException {
+    Connection(Socket socket, NetHandler netHandler) throws IOException {
+        this.netHandler = netHandler;
         this.socket = socket;
         outputStream = new ObjectOutputStream(socket.getOutputStream());
         inputStream = new ObjectInputStream(socket.getInputStream());

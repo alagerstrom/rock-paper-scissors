@@ -142,9 +142,8 @@ public class MainViewController implements ViewController<MainViewController.Del
         @Override
         public void victory(int roundScore, int totalScore) {
             Platform.runLater(() -> {
-                printMessage("You won! Round: " + roundScore + ", Total: " + totalScore);
                 updateScoreText(roundScore, totalScore);
-                statusText.setText("You won!");
+                statusText.setText("You win!");
             });
 
         }
