@@ -5,4 +5,5 @@ public class Constants {
     public static final int DEFAULT_PORT = 3333;
     public static final String ROUND_PREFIX = "Round score: ";
     public static final String TOTAL_PREFIX = "Total score: ";
+    public static final int WAIT_BEFORE_NEXT_ROUND_MS = 3000;
 }

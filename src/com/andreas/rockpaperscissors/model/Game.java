@@ -1,6 +1,7 @@
 package com.andreas.rockpaperscissors.model;
 
 import com.andreas.rockpaperscissors.controller.AppController;
+import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.util.ArrayList;
@@ -16,9 +17,36 @@ public class Game implements NetObserver {
     private GameRound gameRound = null;
     private int totalScore = 0;
 
-
     public Game(String playerName) {
         this.playerName = playerName;
+    }
+
+    public void addGameObserver(GameObserver gameObserver) {
+        gameObservers.add(gameObserver);
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    @Override
+    public void playerInfo(String playerName) {
+        Logger.log("Game got player info: " + playerName);
+        Player player = new Player(playerName);
+        addPlayerIfNew(player);
+    }
+
+    @Override
+    public void playerPlaysCommand(String playerName, PlayCommand playCommand) {
+        if (gameRound == null)
+            gameRound = new GameRound(playerList, this);
+        gameRound.playerPlaysCommand(playerName, playCommand);
+    }
+
+    @Override
+    public void chatMessage(String message) {
+        for (GameObserver gameObserver : gameObservers)
+            gameObserver.chatMessage(message);
     }
 
 
@@ -28,10 +56,6 @@ public class Game implements NetObserver {
             notifyPlayerJoinedTheGame(player.getName());
             appController.sendPlayerInfo(null);
         }
-    }
-
-    public String getPlayerName() {
-        return playerName;
     }
 
     private void notifyPlayerJoinedTheGame(String newPlayer) {
@@ -56,13 +80,6 @@ public class Game implements NetObserver {
 
 
     @Override
-    public void playerInfo(String playerName) {
-        Logger.log("Game got player info: " + playerName);
-        Player player = new Player(playerName);
-        addPlayerIfNew(player);
-    }
-
-    @Override
     public void playerNotResponding(String playerName) {
         for (int i = 0; i < playerList.size(); i++) {
             Player player = playerList.get(i);
@@ -74,61 +91,42 @@ public class Game implements NetObserver {
                 i--;
             }
         }
-
     }
 
-
-    @Override
-    public void playerPlaysCommand(String playerName, PlayCommand playCommand) {
-        if (gameRound == null)
-            gameRound = new GameRound(playerList, this);
-        gameRound.playerPlaysCommand(playerName, playCommand);
-    }
-
-    @Override
-    public void chatMessage(String message) {
-        for (GameObserver gameObserver : gameObservers)
-            gameObserver.chatMessage(message);
-    }
-
-    public void roundCompleted(GameRound gameRound) {
+    void roundCompleted(GameRound gameRound) {
         if (gameRound.isDraw())
-            draw();
+            notifyDraw();
         else if (gameRound.isWonBy(playerName))
-            victory(gameRound.scoreForWinner(playerName));
+            notifyVictory(gameRound.scoreForWinner(playerName));
         else
-            loss();
+            notifyLoss();
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                newRound();
+                notifyNewRound();
             }
-        }, 3000);
+        }, Constants.WAIT_BEFORE_NEXT_ROUND_MS);
     }
 
-    private void newRound() {
+    private void notifyNewRound() {
         for (GameObserver gameObserver : gameObservers)
             gameObserver.newRound(totalScore);
         this.gameRound = null;
     }
 
-    private void draw() {
+    private void notifyDraw() {
         for (GameObserver gameObserver : gameObservers)
             gameObserver.draw();
     }
 
-    private void loss() {
+    private void notifyLoss() {
         for (GameObserver gameObserver : gameObservers)
             gameObserver.loss();
     }
 
-    private void victory(int roundScore) {
+    private void notifyVictory(int roundScore) {
         totalScore += roundScore;
         for (GameObserver gameObserver : gameObservers)
             gameObserver.victory(roundScore, totalScore);
-    }
-
-    public void addGameObserver(GameObserver gameObserver) {
-        gameObservers.add(gameObserver);
     }
 }

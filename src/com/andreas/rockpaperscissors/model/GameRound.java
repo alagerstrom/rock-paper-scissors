@@ -4,20 +4,20 @@ import com.andreas.rockpaperscissors.util.Logger;
 
 import java.util.*;
 
-public class GameRound {
+class GameRound {
 
     private List<String> players = new ArrayList<>();
     private Map<String, PlayCommand> playCommandMap = new HashMap<>();
     private Game game;
 
-    public GameRound(List<Player> playerList, Game game) {
+    GameRound(List<Player> playerList, Game game) {
         for (Player player : playerList)
             players.add(player.getName());
         this.game = game;
     }
 
 
-    public void playerPlaysCommand(String playerName, PlayCommand playCommand) {
+    void playerPlaysCommand(String playerName, PlayCommand playCommand) {
         playCommandMap.put(playerName, playCommand);
         Logger.log("Checking if round is complete...");
         tellGameIfRoundCompleted();
@@ -39,16 +39,16 @@ public class GameRound {
         return result;
     }
 
-    public void removePlayer(String player) {
+    void removePlayer(String player) {
         players.remove(player);
         tellGameIfRoundCompleted();
     }
 
-    public PlayCommand getPlayCommand(String playerName) {
+    private PlayCommand getPlayCommand(String playerName) {
         return playCommandMap.get(playerName);
     }
 
-    public boolean isDraw() {
+    boolean isDraw() {
         return playCommandMap.containsValue(PlayCommand.ROCK) &&
                 playCommandMap.containsValue(PlayCommand.SCISSORS) &&
                 playCommandMap.containsValue(PlayCommand.PAPER)
@@ -63,13 +63,13 @@ public class GameRound {
         return count(commands.get(0)) == commands.size();
     }
 
-    public int count(PlayCommand playCommand) {
+    private int count(PlayCommand playCommand) {
         List<PlayCommand> commands = new ArrayList<>();
         commands.addAll(playCommandMap.values());
         return Collections.frequency(commands, playCommand);
     }
 
-    public int scoreForWinner(String winner) {
+    int scoreForWinner(String winner) {
         PlayCommand playCommand = getPlayCommand(winner);
         switch (playCommand) {
             case ROCK:
@@ -82,7 +82,7 @@ public class GameRound {
         return 0;
     }
 
-    public boolean isWonBy(String playerName) {
+    boolean isWonBy(String playerName) {
         PlayCommand playCommand = playCommandMap.get(playerName);
         switch (playCommand) {
             case ROCK:
