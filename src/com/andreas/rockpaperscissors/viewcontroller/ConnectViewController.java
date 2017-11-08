@@ -93,7 +93,5 @@ public class ConnectViewController {
         hostField.setText("localhost");
         hostPortField.setText(Constants.DEFAULT_PORT + "");
         Logger.log("Join View initialized");
-        GridPane gridPane = new GridPane();
-
     }
 }
