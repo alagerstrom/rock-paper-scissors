@@ -1,9 +1,11 @@
 package com.andreas.rockpaperscissors.controller;
 
 import com.andreas.rockpaperscissors.model.*;
+import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
@@ -24,21 +26,29 @@ public class AppController {
 
     public void createNewGame(String playerName, int port, CompletionHandler<Void, Void> completionHandler) {
         CompletableFuture.runAsync(() -> {
-            game = new Game(playerName);
-            netDelegate = new NetDelegate(playerName);
+
+
             try {
-                netDelegate.createServerSocket(port);
-                netDelegate.addNetObserver(game);
-                completionHandler.completed(null, null);
+                netDelegate = new NetDelegate(port);
             } catch (IOException e) {
                 completionHandler.failed(e, null);
             }
+
+            String uniqueName = netDelegate.getUniqueName();
+            game = new Game(playerName, uniqueName);
+            try {
+                Thread.sleep(Constants.FAKE_NETWORK_DELAY);
+            } catch (InterruptedException ignored) {
+            }
+            netDelegate.addNetObserver(game);
+            completionHandler.completed(null, null);
         });
     }
 
 
     public void connectTo(String host, int port, CompletionHandler<Void, Void> completionHandler) {
         CompletableFuture.runAsync(() -> {
+            netDelegate.getLocalHost();
             try {
                 netDelegate.connectTo(host, port);
                 sendPlayerInfo(new CompletionHandler<Void, Void>() {
@@ -60,13 +70,8 @@ public class AppController {
 
     public void getLocalHost(CompletionHandler<String, Void> completionHandler) {
         CompletableFuture.runAsync(() -> {
-            String localHost = null;
-            try {
-                localHost = netDelegate.getLocalHost();
-            } catch (UnknownHostException e) {
-                completionHandler.failed(e, null);
-            }
-            String tokens[] = localHost.split("/");
+            String localHost = netDelegate.getLocalHost();
+            String tokens[] = localHost.split(Constants.IP_DELIMITER);
             if (tokens.length < 1)
                 completionHandler.failed(new Exception(), null);
             completionHandler.completed(tokens[tokens.length - 1], null);
@@ -82,10 +87,10 @@ public class AppController {
 
     public void sendPlayerInfo(CompletionHandler<Void, Void> nullableCompletionHandler) {
         CompletableFuture.runAsync(() -> {
-            String playerName = game.getPlayerName();
+            String playerName = game.getUniqueName();
             Message message = new Message(MessageType.PLAYER_INFO).setContent(playerName);
             try {
-                netDelegate.sendMessage(message.setSenderName(game.getPlayerName()));
+                netDelegate.sendMessage(message.setSender(game.getPlayer()));
                 if (nullableCompletionHandler != null)
                     nullableCompletionHandler.completed(null, null);
             } catch (IOException e) {
@@ -96,10 +101,9 @@ public class AppController {
     }
 
     public void sendChatMessage(String messageContent, CompletionHandler<Void, Void> completionHandler) {
-        String playerName = game.getPlayerName();
-        Message message = new Message(MessageType.CHAT).setContent("[" + playerName + "] " + messageContent);
+        Message message = new Message(MessageType.CHAT).setContent(messageContent);
         try {
-            netDelegate.sendMessage(message.setSenderName(game.getPlayerName()));
+            netDelegate.sendMessage(message.setSender(game.getPlayer()));
             completionHandler.completed(null, null);
         } catch (IOException e) {
             completionHandler.failed(e, null);
@@ -120,10 +124,10 @@ public class AppController {
 
     private void sendPlay(PlayCommand playCommand, CompletionHandler<Void, Void> completionHandler) {
         Message message = new Message(MessageType.PLAY)
-                .setSenderName(game.getPlayerName())
+                .setSender(game.getPlayer())
                 .setPlayCommand(playCommand);
         try {
-            netDelegate.sendMessage(message.setSenderName(game.getPlayerName()));
+            netDelegate.sendMessage(message.setSender(game.getPlayer()));
             completionHandler.completed(null, null);
         } catch (IOException e) {
             completionHandler.failed(e, null);
@@ -138,7 +142,7 @@ public class AppController {
 
     public void getPlayerName(CompletionHandler<String, Void> completionHandler) {
         CompletableFuture.runAsync(() -> {
-            String result = game.getPlayerName();
+            String result = game.getDisplayName();
             completionHandler.completed(result, null);
         });
     }

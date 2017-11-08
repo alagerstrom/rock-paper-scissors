@@ -1,27 +1,48 @@
 package com.andreas.rockpaperscissors.net;
 
+import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetHandler<T> {
     private ServerSocket serverSocket;
     private final List<Connection> connections = new ArrayList<>();
 
     private int sendMessageCounter;
-    private ArrayList<Peer> knownPeers = new ArrayList<>();
-    private HashMap<Peer, Long> lastTimeHeardFromPeer = new HashMap<>();
-    private HashMap<Peer, Integer> seenMessages = new HashMap<>();
-    private Peer peer;
+    private final ArrayList<Peer> knownPeers = new ArrayList<>();
+    private final ConcurrentHashMap<Peer, Long> lastTimeHeardFromPeer = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Peer, Integer> seenMessages = new ConcurrentHashMap<>();
+    private final Peer peer;
+    private final String ip;
+    private final String uniqueName;
 
-    public NetHandler(String uniqueName, int port, Delegate<T> delegate) throws IOException {
+    public NetHandler(int port, Delegate<T> delegate) throws IOException {
+        ip = createIpAddress();
         this.delegate = delegate;
+        uniqueName = createUniqueName(port);
         this.peer = new Peer(uniqueName);
         serverSocket = new ServerSocket(port);
         new AcceptService(serverSocket, this).start();
         startSendingHeartbeats();
+    }
+
+    private String createIpAddress(){
+        String ipAddress;
+        try {
+            ipAddress = InetAddress.getLocalHost().toString();
+        } catch (UnknownHostException e) {
+            int randomNumber = (int) (Math.random() * 1000000);
+            ipAddress = "[No ip " + randomNumber + "]";
+        }
+        return ipAddress;
+    }
+
+    private String createUniqueName(int port){
+        return ip + " " + port + " ";
     }
 
     private Delegate<T> delegate;
@@ -50,21 +71,24 @@ public class NetHandler<T> {
     }
 
     private void checkIfHeartbeatsHaveBeenReceived() {
-        for (int i = 0; i < knownPeers.size(); i++){
-            Peer peer = knownPeers.get(i);
-            if (peer == null)
-                return;
-            long now = System.currentTimeMillis();
-            long lastHeartbeat = lastTimeHeardFromPeer.get(peer);
-            if (now - lastHeartbeat > 3000){
-                if (delegate != null)
-                    delegate.peerNotResponding(peer.getName());
-                seenMessages.remove(peer);
-                lastTimeHeardFromPeer.remove(peer);
-                knownPeers.remove(peer);
-                i--;
+        synchronized (knownPeers){
+            for (int i = 0; i < knownPeers.size(); i++){
+                Peer peer = knownPeers.get(i);
+                if (peer == null)
+                    return;
+                long now = System.currentTimeMillis();
+                long lastHeartbeat = lastTimeHeardFromPeer.get(peer);
+                if (now - lastHeartbeat > Constants.HEARTBEAT_TIMEOUT_MS){
+                    if (delegate != null)
+                        delegate.peerNotResponding(peer.getName());
+                    seenMessages.remove(peer);
+                    lastTimeHeardFromPeer.remove(peer);
+                    knownPeers.remove(peer);
+                    i--;
+                }
             }
         }
+
     }
     private void startSendingHeartbeats(){
         Timer timer = new Timer(true);
@@ -74,14 +98,17 @@ public class NetHandler<T> {
     private void sendHeartbeat() throws IOException {
         NetMessage<T> netMessage = new NetMessage<>(NetMessageType.HEARTBEAT);
         sendNetMessage(netMessage);
-
     }
 
-    public InetAddress getLocalHost() throws UnknownHostException {
-        return InetAddress.getLocalHost();
+    public String getLocalHost() {
+        return ip;
     }
     public int getLocalPort(){
         return serverSocket.getLocalPort();
+    }
+
+    public String getUniqueName(){
+        return uniqueName;
     }
 
     void removeConnection(Connection connection){
@@ -90,18 +117,16 @@ public class NetHandler<T> {
         }
     }
 
-    void addConnection(Socket socket) throws IOException {
+    synchronized void addConnection(Socket socket) throws IOException {
+        Logger.log("Adding connection...");
         connections.add(new Connection(socket, this));
-        Logger.log("Added connection.");
+
     }
 
     public void connectTo(String host, int port) throws IOException {
-        Logger.log("NetHandler should connect to " + host + ", " + port);
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress(host, port));
-        synchronized (connections){
-            connections.add(new Connection(socket, this));
-        }
+        socket.connect(new InetSocketAddress(host, port), Constants.CONNECT_TIMEOUT_MS);
+        connections.add(new Connection(socket, this));
     }
 
     private void broadcast(NetMessage<T> netMessage) throws IOException {
@@ -113,14 +138,10 @@ public class NetHandler<T> {
     }
 
 
-    void handleIncomingMessage(NetMessage<T> netMessage) throws IOException {
+    synchronized void handleIncomingMessage(NetMessage<T> netMessage) throws IOException {
         if (!isNewMessage(netMessage))
             return;
         broadcast(netMessage);
-        Logger.log("Received message " + netMessage.getType() + ", "
-                + netMessage.getSender() + ", "
-                + netMessage.getNumber() + ", "
-                + netMessage.getContent());
         switch (netMessage.getType()) {
             case MESSAGE:
                 if (delegate != null){
@@ -161,7 +182,9 @@ public class NetHandler<T> {
         sendNetMessage(netMessage);
     }
     private void sendNetMessage(NetMessage<T> netMessage) throws IOException {
-        netMessage.setNumber(sendMessageCounter++);
+        synchronized (this){
+            netMessage.setNumber(sendMessageCounter++);
+        }
         netMessage.setSender(peer);
         broadcast(netMessage);
     }

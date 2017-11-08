@@ -10,37 +10,37 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Game implements NetObserver {
-    private String playerName;
     private List<Player> playerList = new ArrayList<>();
     private AppController appController = AppController.getInstance();
     private ArrayList<GameObserver> gameObservers = new ArrayList<>();
     private GameRound gameRound = null;
     private int totalScore = 0;
+    private final Player player;
 
-    public Game(String playerName) {
-        this.playerName = playerName;
+    public Game(String playerName, String uniqueName) {
+        this.player = new Player(playerName, uniqueName);
     }
 
     public void addGameObserver(GameObserver gameObserver) {
         gameObservers.add(gameObserver);
     }
 
-    public String getPlayerName() {
-        return playerName;
+    public String getUniqueName() {
+        return player.getUniqueName();
     }
+    public String getDisplayName() { return player.getDisplayName(); }
 
     @Override
-    public void playerInfo(String playerName) {
-        Logger.log("Game got player info: " + playerName);
-        Player player = new Player(playerName);
+    public void playerInfo(Player player) {
+        Logger.log("Game got player info: " + player.getUniqueName());
         addPlayerIfNew(player);
     }
 
     @Override
-    public void playerPlaysCommand(String playerName, PlayCommand playCommand) {
+    public void playerPlaysCommand(Player player, PlayCommand playCommand) {
         if (gameRound == null)
             gameRound = new GameRound(playerList, this);
-        gameRound.playerPlaysCommand(playerName, playCommand);
+        gameRound.playerPlaysCommand(player, playCommand);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class Game implements NetObserver {
     private void addPlayerIfNew(Player player) {
         if (!playerList.contains(player)) {
             playerList.add(player);
-            notifyPlayerJoinedTheGame(player.getName());
+            notifyPlayerJoinedTheGame(player.getDisplayName());
             appController.sendPlayerInfo(null);
         }
     }
@@ -61,33 +61,34 @@ public class Game implements NetObserver {
     private void notifyPlayerJoinedTheGame(String newPlayer) {
         List<String> playerNames = new ArrayList<>();
         for (Player player : playerList)
-            playerNames.add(player.getName());
+            playerNames.add(player.getDisplayName());
         for (GameObserver gameObserver : gameObservers) {
             gameObserver.playerJoinedTheGame(newPlayer);
             gameObserver.allPlayers(playerNames);
         }
     }
 
-    private void notifyPlayerLeftTheGame(String lostPlayer) {
+    private void notifyPlayerLeftTheGame(Player lostPlayer) {
         List<String> playerNames = new ArrayList<>();
         for (Player player : playerList)
-            playerNames.add(player.getName());
+            playerNames.add(player.getDisplayName());
         for (GameObserver gameObserver : gameObservers) {
-            gameObserver.playerLeftTheGame(lostPlayer);
+            gameObserver.playerLeftTheGame(lostPlayer.getDisplayName());
             gameObserver.allPlayers(playerNames);
         }
     }
 
 
     @Override
-    public void playerNotResponding(String playerName) {
+    public void playerNotResponding(String uniqueName) {
+        Player deadPlayer = new Player("Unknown", uniqueName);
         for (int i = 0; i < playerList.size(); i++) {
             Player player = playerList.get(i);
-            if (player.getName().equals(playerName)) {
+            if (deadPlayer.equals(player)) {
                 playerList.remove(player);
                 if (gameRound != null)
-                    gameRound.removePlayer(playerName);
-                notifyPlayerLeftTheGame(playerName);
+                    gameRound.removePlayer(deadPlayer);
+                notifyPlayerLeftTheGame(deadPlayer);
                 i--;
             }
         }
@@ -96,8 +97,8 @@ public class Game implements NetObserver {
     void roundCompleted(GameRound gameRound) {
         if (gameRound.isDraw())
             notifyDraw();
-        else if (gameRound.isWonBy(playerName))
-            notifyVictory(gameRound.scoreForWinner(playerName));
+        else if (gameRound.isWonBy(player))
+            notifyVictory(gameRound.scoreForWinner(player));
         else
             notifyLoss();
         new Timer().schedule(new TimerTask() {
@@ -128,5 +129,9 @@ public class Game implements NetObserver {
         totalScore += roundScore;
         for (GameObserver gameObserver : gameObservers)
             gameObserver.victory(roundScore, totalScore);
+    }
+
+    public Player getPlayer() {
+        return this.player;
     }
 }

@@ -6,19 +6,18 @@ import java.util.*;
 
 class GameRound {
 
-    private List<String> players = new ArrayList<>();
-    private Map<String, PlayCommand> playCommandMap = new HashMap<>();
+    private List<Player> players = new ArrayList<>();
+    private Map<Player, PlayCommand> playCommandMap = new HashMap<>();
     private Game game;
 
     GameRound(List<Player> playerList, Game game) {
-        for (Player player : playerList)
-            players.add(player.getName());
+        this.players = playerList;
         this.game = game;
     }
 
 
-    void playerPlaysCommand(String playerName, PlayCommand playCommand) {
-        playCommandMap.put(playerName, playCommand);
+    void playerPlaysCommand(Player player, PlayCommand playCommand) {
+        playCommandMap.put(player, playCommand);
         Logger.log("Checking if round is complete...");
         tellGameIfRoundCompleted();
     }
@@ -30,8 +29,8 @@ class GameRound {
 
     private boolean isRoundComplete() {
         boolean result = true;
-        for (String playerName : players) {
-            if (!playCommandMap.containsKey(playerName)) {
+        for (Player player : players) {
+            if (!playCommandMap.containsKey(player)) {
                 result = false;
                 break;
             }
@@ -39,13 +38,13 @@ class GameRound {
         return result;
     }
 
-    void removePlayer(String player) {
+    void removePlayer(Player player) {
         players.remove(player);
         tellGameIfRoundCompleted();
     }
 
-    private PlayCommand getPlayCommand(String playerName) {
-        return playCommandMap.get(playerName);
+    private PlayCommand getPlayCommand(Player player) {
+        return playCommandMap.get(player);
     }
 
     boolean isDraw() {
@@ -55,7 +54,7 @@ class GameRound {
                 || containsSingleValue(playCommandMap);
     }
 
-    private boolean containsSingleValue(Map<String, PlayCommand> playCommandMap) {
+    private boolean containsSingleValue(Map<Player, PlayCommand> playCommandMap) {
         List<PlayCommand> commands = new ArrayList<>();
         commands.addAll(playCommandMap.values());
         if (commands.size() < 2)
@@ -69,7 +68,7 @@ class GameRound {
         return Collections.frequency(commands, playCommand);
     }
 
-    int scoreForWinner(String winner) {
+    int scoreForWinner(Player winner) {
         PlayCommand playCommand = getPlayCommand(winner);
         switch (playCommand) {
             case ROCK:
@@ -82,8 +81,8 @@ class GameRound {
         return 0;
     }
 
-    boolean isWonBy(String playerName) {
-        PlayCommand playCommand = playCommandMap.get(playerName);
+    boolean isWonBy(Player player) {
+        PlayCommand playCommand = playCommandMap.get(player);
         switch (playCommand) {
             case ROCK:
                 if (count(PlayCommand.PAPER) == 0)

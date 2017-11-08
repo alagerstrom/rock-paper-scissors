@@ -1,14 +1,22 @@
 package com.andreas.rockpaperscissors.model;
 
-public class Player {
-    private String name;
+import java.io.Serializable;
 
-    public Player(String name) {
-        this.name = name;
+public class Player implements Serializable{
+    private final String displayName;
+    private final String uniqueName;
+
+    public Player(String name, String uniqueName) {
+        this.displayName = name;
+        this.uniqueName = uniqueName;
     }
 
-    public String getName() {
-        return name;
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getUniqueName() {
+        return uniqueName;
     }
 
     @Override
@@ -16,6 +24,11 @@ public class Player {
         if (!(obj instanceof Player))
             return false;
         Player otherPlayer = (Player) obj;
-        return otherPlayer.name.equals(name);
+        return otherPlayer.uniqueName.equals(uniqueName);
+    }
+
+    @Override
+    public int hashCode() {
+        return uniqueName.hashCode();
     }
 }

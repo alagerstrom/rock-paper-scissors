@@ -6,7 +6,7 @@ public class Message implements Serializable{
     private MessageType type;
     private String content;
     private int number;
-    private String senderName;
+    private Player sender;
     private PlayCommand playCommand = PlayCommand.ROCK;
 
     public Message(MessageType type) {
@@ -40,12 +40,12 @@ public class Message implements Serializable{
         return this;
     }
 
-    public String getSenderName() {
-        return senderName;
+    public Player getSender() {
+        return sender;
     }
 
-    public Message setSenderName(String senderName) {
-        this.senderName = senderName;
+    public Message setSender(Player sender) {
+        this.sender = sender;
         return this;
     }
 

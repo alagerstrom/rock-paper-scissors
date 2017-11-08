@@ -4,7 +4,10 @@ import com.andreas.rockpaperscissors.controller.AppController;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
@@ -20,7 +23,10 @@ public class ConnectViewController {
     TextField hostPortField;
     @FXML
     Text errorText;
-
+    @FXML
+    ProgressBar progressBar;
+    @FXML
+    GridPane gridPane;
 
     @FXML
     public void skipConnect(ActionEvent actionEvent) throws IOException {
@@ -40,31 +46,54 @@ public class ConnectViewController {
                 errorText.setText("Invalid port number");
                 return;
             }
-
-            AppController.getInstance().connectTo(remoteHostString, remotePort, new CompletionHandler<Void, Void>() {
-                @Override
-                public void completed(Void result, Void attachment) {
-                    Platform.runLater(()->{
-                        ViewCoordinator.getInstance().hideWindow(actionEvent);
-                    });
-                }
-
-                @Override
-                public void failed(Throwable exc, Void attachment) {
-                    Platform.runLater(()-> errorText.setText("Failed to connect"));
-                }
-            });
+            sendConnectionRequest(remoteHostString, remotePort, actionEvent);
         } else {
             errorText.setText("You must enter both host and port.");
         }
 
     }
 
+    private void sendConnectionRequest(String remoteHostString, int remotePort, ActionEvent actionEvent) {
+        disableControlsAndShowProgressBar();
+        errorText.setText("Connecting...");
+        AppController.getInstance().connectTo(remoteHostString, remotePort, new CompletionHandler<Void, Void>() {
+            @Override
+            public void completed(Void result, Void attachment) {
+                Platform.runLater(()->{
+                    ViewCoordinator.getInstance().hideWindow(actionEvent);
+                    enableControlsAndHideProgressBar();
+                });
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) {
+                Platform.runLater(()->{
+                    errorText.setText("Failed to connect");
+                    enableControlsAndHideProgressBar();
+                });
+
+            }
+        });
+    }
+
+    private void enableControlsAndHideProgressBar() {
+        gridPane.setDisable(false);
+        progressBar.setVisible(false);
+    }
+
+    private void disableControlsAndShowProgressBar() {
+        gridPane.setDisable(true);
+        progressBar.setVisible(true);
+    }
+
 
     public void initialize() {
         errorText.setText("");
+        progressBar.setVisible(false);
         hostField.setText("localhost");
         hostPortField.setText(Constants.DEFAULT_PORT + "");
         Logger.log("Join View initialized");
+        GridPane gridPane = new GridPane();
+
     }
 }

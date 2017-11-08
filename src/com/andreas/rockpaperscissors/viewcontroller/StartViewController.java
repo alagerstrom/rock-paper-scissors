@@ -6,7 +6,9 @@ import com.andreas.rockpaperscissors.util.Logger;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
@@ -20,6 +22,10 @@ public class StartViewController {
     TextField portField;
     @FXML
     Text errorText;
+    @FXML
+    ProgressBar startProgress;
+    @FXML
+    GridPane gridPane;
 
     public void initialize() {
         portField.setText("" + Constants.DEFAULT_PORT);
@@ -42,6 +48,13 @@ public class StartViewController {
             return;
         }
 
+        sendStartGameRequest(playerName, port, actionEvent);
+
+    }
+
+    private void sendStartGameRequest(String playerName, int port, ActionEvent actionEvent) {
+        errorText.setText("Starting game...");
+        disableControlsAndShowProgressBar();
         AppController.getInstance().createNewGame(playerName, port, new CompletionHandler<Void, Void>() {
             @Override
             public void completed(Void result, Void attachment) {
@@ -56,8 +69,18 @@ public class StartViewController {
             @Override
             public void failed(Throwable exc, Void attachment) {
                 errorText.setText("Failed to use that port, try another one.");
+                enableControlsAndHideProgressBar();
             }
         });
+    }
 
+    private void enableControlsAndHideProgressBar() {
+        gridPane.setDisable(false);
+        startProgress.setVisible(false);
+    }
+
+    private void disableControlsAndShowProgressBar() {
+        gridPane.setDisable(true);
+        startProgress.setVisible(true);
     }
 }

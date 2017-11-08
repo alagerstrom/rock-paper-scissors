@@ -1,6 +1,5 @@
 package com.andreas.rockpaperscissors.model;
 
-import com.andreas.rockpaperscissors.controller.AppController;
 import com.andreas.rockpaperscissors.net.NetHandler;
 import com.andreas.rockpaperscissors.util.Logger;
 
@@ -16,26 +15,25 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
     private NetHandler<Message> netHandler;
     private String uniqueName;
 
-    public NetDelegate(String uniqueName) {
-        this.uniqueName = uniqueName;
+    public NetDelegate(int port) throws IOException {
+        netHandler = new NetHandler<>(port, this);
+        uniqueName = netHandler.getUniqueName();
     }
 
-    public void createServerSocket(int port) throws IOException {
-        netHandler = new NetHandler<>(uniqueName, port, this);
+    public String getUniqueName(){
+        return uniqueName;
     }
-
     @Override
     public void onNewMessage(Message message) {
         switch (message.getType()) {
             case CHAT:
-                notifyChatObservers(message.getContent());
+                notifyChatObservers("[" + message.getSender().getDisplayName() + "] " + message.getContent());
                 break;
             case PLAYER_INFO:
-                notifyPlayerObservers(message.getContent());
+                notifyPlayerObservers(message.getSender());
                 break;
             case PLAY:
-                Logger.log("Received: " + message.getSenderName() + " plays " + message.getPlayCommand());
-                notifyPlayerPlaysCommand(message.getSenderName(), message.getPlayCommand());
+                notifyPlayerPlaysCommand(message.getSender(), message.getPlayCommand());
                 break;
         }
     }
@@ -47,9 +45,9 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
 
     }
 
-    private void notifyPlayerObservers(String playerName) {
+    private void notifyPlayerObservers(Player player) {
         for (NetObserver netObserver : netObservers) {
-            netObserver.playerInfo(playerName);
+            netObserver.playerInfo(player);
         }
     }
 
@@ -63,23 +61,21 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
         this.netObservers.add(netObserver);
     }
 
-    private void notifyPlayerPlaysCommand(String playerName, PlayCommand playCommand) {
+    private void notifyPlayerPlaysCommand(Player player, PlayCommand playCommand) {
         for (NetObserver netObserver : netObservers)
-            netObserver.playerPlaysCommand(playerName, playCommand);
+            netObserver.playerPlaysCommand(player, playCommand);
     }
 
     public void connectTo(String host, int port) throws IOException {
         netHandler.connectTo(host, port);
     }
 
-
-
     public void sendMessage(Message message) throws IOException {
         netHandler.sendMessage(message);
     }
 
-    public String getLocalHost() throws UnknownHostException {
-        return netHandler.getLocalHost().toString();
+    public String getLocalHost() {
+        return netHandler.getLocalHost();
     }
 
     public int getLocalPort() {
