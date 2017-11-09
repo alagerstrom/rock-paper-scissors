@@ -9,6 +9,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import com.andreas.rockpaperscissors.util.Logger;
 
@@ -35,6 +37,9 @@ public class MainViewController {
         printMessage("Rock Paper Scissors game started");
         Logger.log("Main view initialized");
 
+        initializeButtons();
+
+
         appController.getPlayerName(new CompletionHandler<String, Void>() {
             @Override
             public void completed(String result, Void attachment) {
@@ -57,6 +62,30 @@ public class MainViewController {
         appController.addGameObserver(new GameHandler());
         initializeIpAndPortTexts();
         appController.sendPlayerInfo(null);
+    }
+
+    private void initializeButtons() {
+        double scaleImage = 0.6;
+        ImageView paper = new ImageView(getClass().getResource(ImagePath.PAPER.name).toString());
+        paper.setPreserveRatio(true);
+        paper.setFitWidth(paperButton.getPrefWidth() * scaleImage);
+        paperButton.setGraphic(paper);
+        paperButton.setText("");
+
+        ImageView rock = new ImageView(getClass().getResource(ImagePath.ROCK.name).toString());
+        rock.setPreserveRatio(true);
+        rock.setFitWidth(rockButton.getPrefWidth() * scaleImage);
+        rockButton.setGraphic(rock);
+        rockButton.setText("");
+
+        ImageView scissors = new ImageView(getClass().getResource(ImagePath.SCISSORS.name).toString());
+        scissors.setPreserveRatio(true);
+        scissors.setFitWidth(scissorsButton.getPrefWidth() * scaleImage);
+        scissorsButton.setGraphic(scissors);
+        scissorsButton.setText("");
+
+
+
     }
 
     private void updateScoreText(int roundScore, int totalScore) {

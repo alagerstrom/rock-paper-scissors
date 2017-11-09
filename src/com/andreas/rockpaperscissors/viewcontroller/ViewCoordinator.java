@@ -36,6 +36,7 @@ public class ViewCoordinator {
             root = loader.load();
             Stage stage = new Stage();
             Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/style/main.css").toString());
             stage.setScene(scene);
             stage.setTitle(Constants.WINDOW_TITLE);
             stage.show();

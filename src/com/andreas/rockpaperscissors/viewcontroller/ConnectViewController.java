@@ -7,6 +7,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import com.andreas.rockpaperscissors.util.Constants;
@@ -89,6 +93,10 @@ public class ConnectViewController {
 
     public void initialize() {
         errorText.setText("");
+        Image image = new Image(
+                getClass().getResource(ImagePath.CONNECT.name).toString());
+        BackgroundSize backgroundSize = new BackgroundSize(1,1,true, true,true,true);
+        gridPane.setBackground(new Background(new BackgroundImage(image, null,null,null, backgroundSize)));
         progressBar.setVisible(false);
         hostField.setText("localhost");
         hostPortField.setText(Constants.DEFAULT_PORT + "");

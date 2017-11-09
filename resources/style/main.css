@@ -1,0 +1,18 @@
+.root{
+
+}
+
+.text{
+    -fx-text-fill: darkgrey;
+}
+
+#rockButton, #scissorsButton, #paperButton{
+    -fx-border-color: darkgrey;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-background-color: white;
+    -fx-border-width: 1px;
+}
+#rockButton:hover, #scissorsButton:hover, #paperButton:hover{
+    -fx-border-color: black;
+}
