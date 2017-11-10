@@ -9,8 +9,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import com.andreas.rockpaperscissors.util.Logger;
 
@@ -31,6 +31,10 @@ public class MainViewController {
     Text totalText, roundText, ipText, portText, nameText, statusText;
     @FXML
     Button rockButton, scissorsButton, paperButton;
+    @FXML
+    GridPane gridPane;
+    @FXML
+    BorderPane borderPane;
 
 
     public void initialize() {
@@ -38,19 +42,7 @@ public class MainViewController {
         Logger.log("Main view initialized");
 
         initializeButtons();
-
-
-        appController.getPlayerName(new CompletionHandler<String, Void>() {
-            @Override
-            public void completed(String result, Void attachment) {
-                Platform.runLater(()->{
-                    nameText.setText(result);
-                });
-            }
-
-            @Override
-            public void failed(Throwable exc, Void attachment) { }
-        });
+        initializePlayerName();
 
         statusText.setText("Welcome, make your choice!");
 
@@ -62,6 +54,20 @@ public class MainViewController {
         appController.addGameObserver(new GameHandler());
         initializeIpAndPortTexts();
         appController.sendPlayerInfo(null);
+    }
+
+    private void initializePlayerName() {
+        appController.getPlayerName(new CompletionHandler<String, Void>() {
+            @Override
+            public void completed(String result, Void attachment) {
+                Platform.runLater(()->{
+                    nameText.setText(result);
+                });
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) { }
+        });
     }
 
     private void initializeButtons() {
@@ -83,7 +89,6 @@ public class MainViewController {
         scissors.setFitWidth(scissorsButton.getPrefWidth() * scaleImage);
         scissorsButton.setGraphic(scissors);
         scissorsButton.setText("");
-
 
 
     }

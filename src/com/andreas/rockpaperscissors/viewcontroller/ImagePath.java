@@ -4,6 +4,7 @@ public enum ImagePath {
     PAPER("/images/paper.png"),
     ROCK("/images/rock.png"),
     SCISSORS("/images/scissors.png"),
+    MAIN_BACKGROUND("/images/background2.jpg"),
     CONNECT("/images/connect.jpg");
 
     String name;

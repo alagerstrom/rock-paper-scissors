@@ -25,7 +25,7 @@ public class StartViewController {
     @FXML
     ProgressBar startProgress;
     @FXML
-    GridPane gridPane;
+    GridPane startGrid;
 
     public void initialize() {
         portField.setText("" + Constants.DEFAULT_PORT);
@@ -75,12 +75,12 @@ public class StartViewController {
     }
 
     private void enableControlsAndHideProgressBar() {
-        gridPane.setDisable(false);
+        startGrid.setDisable(false);
         startProgress.setVisible(false);
     }
 
     private void disableControlsAndShowProgressBar() {
-        gridPane.setDisable(true);
+        startGrid.setDisable(true);
         startProgress.setVisible(true);
     }
 }
