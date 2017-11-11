@@ -16,7 +16,7 @@ class GameRound {
     }
 
 
-    void playerPlaysCommand(Player player, PlayCommand playCommand) {
+    synchronized void playerPlaysCommand(Player player, PlayCommand playCommand) {
         playCommandMap.put(player, playCommand);
         Logger.log("Checking if round is complete...");
         tellGameIfRoundCompleted();
