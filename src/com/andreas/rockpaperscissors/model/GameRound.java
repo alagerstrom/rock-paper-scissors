@@ -38,7 +38,7 @@ class GameRound {
         return result;
     }
 
-    void removePlayer(Player player) {
+    synchronized void removePlayer(Player player) {
         players.remove(player);
         tellGameIfRoundCompleted();
     }
@@ -47,7 +47,7 @@ class GameRound {
         return playCommandMap.get(player);
     }
 
-    boolean isDraw() {
+    synchronized boolean isDraw() {
         return playCommandMap.containsValue(PlayCommand.ROCK) &&
                 playCommandMap.containsValue(PlayCommand.SCISSORS) &&
                 playCommandMap.containsValue(PlayCommand.PAPER)
@@ -68,7 +68,7 @@ class GameRound {
         return Collections.frequency(commands, playCommand);
     }
 
-    int scoreForWinner(Player winner) {
+    synchronized int scoreForWinner(Player winner) {
         PlayCommand playCommand = getPlayCommand(winner);
         switch (playCommand) {
             case ROCK:
@@ -81,7 +81,7 @@ class GameRound {
         return 0;
     }
 
-    boolean isWonBy(Player player) {
+    synchronized boolean isWonBy(Player player) {
         PlayCommand playCommand = playCommandMap.get(player);
         switch (playCommand) {
             case ROCK:
