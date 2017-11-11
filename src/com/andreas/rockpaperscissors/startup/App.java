@@ -1,9 +1,6 @@
 package com.andreas.rockpaperscissors.startup;
 
 import com.andreas.rockpaperscissors.viewcontroller.ViewCoordinator;
-import com.apple.eawt.AppEvent;
-import com.apple.eawt.QuitHandler;
-import com.apple.eawt.QuitResponse;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;

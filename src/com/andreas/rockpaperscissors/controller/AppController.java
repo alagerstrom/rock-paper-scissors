@@ -5,8 +5,6 @@ import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
 

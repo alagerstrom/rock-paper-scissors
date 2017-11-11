@@ -5,7 +5,6 @@ import java.io.Serializable;
 public class Message implements Serializable{
     private MessageType type;
     private String content;
-    private int number;
     private Player sender;
     private PlayCommand playCommand = PlayCommand.ROCK;
 
@@ -28,15 +27,6 @@ public class Message implements Serializable{
 
     public Message setContent(String content) {
         this.content = content;
-        return this;
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public Message setNumber(int number) {
-        this.number = number;
         return this;
     }
 

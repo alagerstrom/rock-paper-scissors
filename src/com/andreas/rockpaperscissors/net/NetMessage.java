@@ -8,8 +8,6 @@ public class NetMessage<T> implements Serializable{
     private Peer sender;
     private T content;
 
-
-
     NetMessage(NetMessageType type) {
         this.type = type;
     }

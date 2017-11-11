@@ -29,7 +29,7 @@
     -fx-background-color: rgba(255,255,255,0.6);
 }
 .list-view {
-    -fx-background-color: rgba(255,255,255,0.8);
+    -fx-background-color: transparent;
 }
 .list-view .list-cell{
     -fx-background-color: transparent;
@@ -83,10 +83,7 @@
     -fx-padding: 20px;
 }
 
-#connectButton{
-    -fx-border-radius: 0px;
-    -fx-background-radius: 0px;
-}
+
 
 .scroll-pane {
     -fx-background-color: transparent;
@@ -125,3 +122,15 @@
     -fx-background-color: transparent;
 }
 
+#messageField, #sendButton{
+    -fx-border-radius: 5 5 0 0;
+    -fx-background-radius: 5 5 0 0;
+}
+
+#connectBox{
+    -fx-background-color: rgba(255,255,255,0.6);
+}
+#connectButton{
+    -fx-border-radius: 0 0 5 5;
+    -fx-background-radius: 0 0 5 5;
+}

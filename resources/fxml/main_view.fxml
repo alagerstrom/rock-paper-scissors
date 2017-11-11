@@ -5,7 +5,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="643.0" prefWidth="446.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.andreas.rockpaperscissors.viewcontroller.MainViewController">
+<BorderPane fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="100.0" minWidth="100.0" prefHeight="643.0" prefWidth="446.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.andreas.rockpaperscissors.viewcontroller.MainViewController">
    <center>
       <GridPane fx:id="gridPane" alignment="CENTER" BorderPane.alignment="CENTER">
         <columnConstraints>
@@ -45,7 +45,7 @@
       </GridPane>
    </center>
    <right>
-      <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="150.0" BorderPane.alignment="CENTER">
+      <VBox fx:id="connectBox" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="150.0" BorderPane.alignment="CENTER">
          <children>
             <Button fx:id="connectButton" alignment="CENTER" mnemonicParsing="false" onAction="#connectButtonClicked" prefWidth="150.0" text="Connect">
                <tooltip>
@@ -86,7 +86,7 @@
                <children>
                   <TextArea fx:id="messages" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.vgrow="ALWAYS" />
                   <TextField fx:id="messageField" onAction="#sendChatMessage" promptText="Type chat message" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                  <Button mnemonicParsing="false" onAction="#sendChatMessage" prefWidth="100.0" text="Send" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Button fx:id="sendButton" mnemonicParsing="false" onAction="#sendChatMessage" prefWidth="100.0" text="Send" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
             </GridPane>
          </children>
