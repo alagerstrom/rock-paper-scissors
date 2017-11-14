@@ -6,9 +6,10 @@ import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class AppController {
+public class AppController implements GameObserver{
     private final static AppController instance = new AppController();
 
     private Game game;
@@ -33,6 +34,7 @@ public class AppController {
 
             String uniqueName = netDelegate.getUniqueName();
             game = new Game(playerName, uniqueName);
+            game.addGameObserver(this);
             try {
                 Thread.sleep(Constants.FAKE_NETWORK_DELAY);
             } catch (InterruptedException ignored) {
@@ -153,5 +155,47 @@ public class AppController {
             String result = game.getDisplayName();
             completionHandler.completed(result, null);
         });
+    }
+
+    @Override
+    public void allPlayers(List<String> allPlayers) {
+
+    }
+
+    @Override
+    public void playerJoinedTheGame(String player) {
+        sendPlayerInfo(null);
+        if (game.getGameRound() != null)
+            sendRoundInfo();
+    }
+
+    @Override
+    public void playerLeftTheGame(String player) {
+
+    }
+
+    @Override
+    public void chatMessage(String message) {
+
+    }
+
+    @Override
+    public void draw() {
+
+    }
+
+    @Override
+    public void victory(int roundScore, int totalScore) {
+
+    }
+
+    @Override
+    public void loss() {
+
+    }
+
+    @Override
+    public void newRound(int totalScore) {
+
     }
 }

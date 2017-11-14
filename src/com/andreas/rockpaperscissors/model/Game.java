@@ -1,6 +1,5 @@
 package com.andreas.rockpaperscissors.model;
 
-import com.andreas.rockpaperscissors.controller.AppController;
 import com.andreas.rockpaperscissors.util.Constants;
 import com.andreas.rockpaperscissors.util.Logger;
 
@@ -11,7 +10,6 @@ import java.util.TimerTask;
 
 public class Game implements NetObserver {
     private List<Player> playerList = new ArrayList<>();
-    private AppController appController = AppController.getInstance();
     private ArrayList<GameObserver> gameObservers = new ArrayList<>();
     private GameRound gameRound = null;
     private int totalScore = 0;
@@ -64,10 +62,8 @@ public class Game implements NetObserver {
         if (!playerList.contains(player)) {
             playerList.add(player);
             notifyPlayerJoinedTheGame(player.getDisplayName());
-            appController.sendPlayerInfo(null);
             if (gameRound != null) {
                 gameRound.addPlayer(player);
-                AppController.getInstance().sendRoundInfo();
             }
         }
     }
@@ -150,6 +146,8 @@ public class Game implements NetObserver {
     }
 
     public GameRoundDTO getGameRound() {
+        if (gameRound == null)
+            return null;
         return gameRound.getDTO();
     }
 }

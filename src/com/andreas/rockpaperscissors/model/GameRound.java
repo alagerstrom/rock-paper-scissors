@@ -2,7 +2,6 @@ package com.andreas.rockpaperscissors.model;
 
 import com.andreas.rockpaperscissors.util.Logger;
 
-import java.io.Serializable;
 import java.util.*;
 
 class GameRound {

@@ -1,11 +1,8 @@
 package com.andreas.rockpaperscissors.model;
 
-import com.andreas.rockpaperscissors.controller.AppController;
 import com.andreas.rockpaperscissors.net.NetHandler;
-import com.andreas.rockpaperscissors.util.Logger;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
