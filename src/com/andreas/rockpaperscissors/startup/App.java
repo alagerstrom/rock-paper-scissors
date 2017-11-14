@@ -1,6 +1,6 @@
 package com.andreas.rockpaperscissors.startup;
 
-import com.andreas.rockpaperscissors.viewcontroller.ViewCoordinator;
+import com.andreas.rockpaperscissors.view.ViewCoordinator;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;

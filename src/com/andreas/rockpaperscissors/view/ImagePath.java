@@ -1,4 +1,4 @@
-package com.andreas.rockpaperscissors.viewcontroller;
+package com.andreas.rockpaperscissors.view;
 
 public enum ImagePath {
     PAPER("/images/paper.png"),

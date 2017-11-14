@@ -1,4 +1,4 @@
-package com.andreas.rockpaperscissors.viewcontroller;
+package com.andreas.rockpaperscissors.view;
 
 import com.andreas.rockpaperscissors.controller.AppController;
 import javafx.application.Platform;
