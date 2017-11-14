@@ -7,6 +7,7 @@ public class Message implements Serializable{
     private String content;
     private Player sender;
     private PlayCommand playCommand = PlayCommand.ROCK;
+    private GameRoundDTO gameRound;
 
     public Message(MessageType type) {
         this.type = type;
@@ -19,6 +20,14 @@ public class Message implements Serializable{
     public Message setType(MessageType type) {
         this.type = type;
         return this;
+    }
+    public Message setGameRound(GameRoundDTO gameRound){
+        this.gameRound = gameRound;
+        return this;
+    }
+
+    public GameRoundDTO getGameRound() {
+        return gameRound;
     }
 
     public String getContent() {

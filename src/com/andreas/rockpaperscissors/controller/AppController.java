@@ -25,7 +25,6 @@ public class AppController {
     public void createNewGame(String playerName, int port, CompletionHandler<Void, Void> completionHandler) {
         CompletableFuture.runAsync(() -> {
 
-
             try {
                 netDelegate = new NetDelegate(port);
             } catch (IOException e) {
@@ -83,10 +82,21 @@ public class AppController {
         });
     }
 
+    public void sendRoundInfo(){
+        CompletableFuture.runAsync(()->{
+           Message message = new Message(MessageType.ROUND_INFO).setGameRound(game.getGameRound());
+            try {
+                netDelegate.sendMessage(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
     public void sendPlayerInfo(CompletionHandler<Void, Void> nullableCompletionHandler) {
         CompletableFuture.runAsync(() -> {
             String playerName = game.getUniqueName();
-            Message message = new Message(MessageType.PLAYER_INFO).setContent(playerName);
+            Message message = new Message(MessageType.PLAYER_INFO)
+                    .setContent(playerName);
             try {
                 netDelegate.sendMessage(message.setSender(game.getPlayer()));
                 if (nullableCompletionHandler != null)

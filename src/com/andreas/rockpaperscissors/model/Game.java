@@ -28,7 +28,10 @@ public class Game implements NetObserver {
     public String getUniqueName() {
         return player.getUniqueName();
     }
-    public String getDisplayName() { return player.getDisplayName(); }
+
+    public String getDisplayName() {
+        return player.getDisplayName();
+    }
 
     @Override
     public void playerInfo(Player player) {
@@ -49,12 +52,23 @@ public class Game implements NetObserver {
             gameObserver.chatMessage(message);
     }
 
+    @Override
+    public void roundInfo(GameRoundDTO gameRoundDTO) {
+        for (Player player : gameRoundDTO.getPlayCommandMap().keySet()) {
+            playerPlaysCommand(player, gameRoundDTO.getPlayCommandMap().get(player));
+            this.gameRound.addPlayer(player);
+        }
+    }
 
     private void addPlayerIfNew(Player player) {
         if (!playerList.contains(player)) {
             playerList.add(player);
             notifyPlayerJoinedTheGame(player.getDisplayName());
             appController.sendPlayerInfo(null);
+            if (gameRound != null) {
+                gameRound.addPlayer(player);
+                AppController.getInstance().sendRoundInfo();
+            }
         }
     }
 
@@ -88,7 +102,7 @@ public class Game implements NetObserver {
                 playerList.remove(player);
                 if (gameRound != null)
                     gameRound.removePlayer(deadPlayer);
-                notifyPlayerLeftTheGame(deadPlayer);
+                notifyPlayerLeftTheGame(player);
                 i--;
             }
         }
@@ -133,5 +147,9 @@ public class Game implements NetObserver {
 
     public Player getPlayer() {
         return this.player;
+    }
+
+    public GameRoundDTO getGameRound() {
+        return gameRound.getDTO();
     }
 }

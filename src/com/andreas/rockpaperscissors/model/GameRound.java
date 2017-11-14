@@ -2,6 +2,7 @@ package com.andreas.rockpaperscissors.model;
 
 import com.andreas.rockpaperscissors.util.Logger;
 
+import java.io.Serializable;
 import java.util.*;
 
 class GameRound {
@@ -14,7 +15,6 @@ class GameRound {
         this.players = playerList;
         this.game = game;
     }
-
 
     synchronized void playerPlaysCommand(Player player, PlayCommand playCommand) {
         playCommandMap.put(player, playCommand);
@@ -97,5 +97,14 @@ class GameRound {
                     return !isDraw();
         }
         return false;
+    }
+
+    public void addPlayer(Player player) {
+        if (!players.contains(player))
+            players.add(player);
+    }
+
+    public GameRoundDTO getDTO(){
+        return new GameRoundDTO(players, playCommandMap);
     }
 }

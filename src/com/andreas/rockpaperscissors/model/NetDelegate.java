@@ -1,5 +1,6 @@
 package com.andreas.rockpaperscissors.model;
 
+import com.andreas.rockpaperscissors.controller.AppController;
 import com.andreas.rockpaperscissors.net.NetHandler;
 import com.andreas.rockpaperscissors.util.Logger;
 
@@ -35,7 +36,15 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
             case PLAY:
                 notifyPlayerPlaysCommand(message.getSender(), message.getPlayCommand());
                 break;
+            case ROUND_INFO:
+                notifyRoundInfo(message.getGameRound());
+                break;
         }
+    }
+
+    private void notifyRoundInfo(GameRoundDTO gameRound) {
+        for (NetObserver netObserver : netObservers)
+            netObserver.roundInfo(gameRound);
     }
 
     @Override
@@ -81,5 +90,6 @@ public class NetDelegate implements NetHandler.Delegate<Message> {
     public int getLocalPort() {
         return netHandler.getLocalPort();
     }
+
 
 }
