@@ -17,7 +17,7 @@ import com.andreas.rockpaperscissors.util.Logger;
 import java.nio.channels.CompletionHandler;
 import java.util.List;
 
-public class MainViewController {
+public class MainView {
 
     private AppController appController = AppController.getInstance();
 

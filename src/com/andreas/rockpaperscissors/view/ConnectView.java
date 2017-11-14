@@ -14,7 +14,7 @@ import com.andreas.rockpaperscissors.util.Logger;
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
 
-public class ConnectViewController {
+public class ConnectView {
 
     @FXML
     TextField hostField;

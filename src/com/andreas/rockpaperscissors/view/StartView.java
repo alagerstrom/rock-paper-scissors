@@ -14,7 +14,7 @@ import javafx.scene.text.Text;
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
 
-public class StartViewController {
+public class StartView {
 
     @FXML
     TextField nameField;
